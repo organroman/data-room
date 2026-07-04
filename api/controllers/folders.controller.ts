@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import * as foldersService from "../services/folders.service";
-import type { CreateFolderInput, RenameInput } from "@shared/types";
+import type { CreateFolderInput } from "@shared/types";
+import type { NameInput } from "@shared/validation";
 
 export async function createFolder(req: Request, res: Response) {
   const { dataroomId, parentFolderId, name } = req.body as CreateFolderInput;
@@ -9,7 +10,7 @@ export async function createFolder(req: Request, res: Response) {
 }
 
 export async function renameFolder(req: Request, res: Response) {
-  const { name } = req.body as RenameInput;
+  const { name } = req.body as NameInput;
   const folder = await foldersService.renameFolder(req.params.id, name);
   res.json(folder);
 }

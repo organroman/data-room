@@ -1,29 +1,25 @@
 import { z } from "zod";
 import type {
-  CreateDataroomInput,
-  RenameInput,
   CreateFolderInput,
   ContentsQuery,
   ConfirmUploadInput,
   StarEntityInput,
   TrashQuery,
-} from "@shared/types";
+} from "./types";
 
 const uuidSchema = z.string().uuid();
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
 
-export const createDataroomSchema = z.object({
+// Used for every create/rename form across dataroom, folder, and file — both as
+// the backend's request-body validator and, via zodResolver, as the frontend's
+// client-side form validation. Single source of truth for the "name" rule.
+export const nameSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(255),
-}) satisfies z.ZodType<CreateDataroomInput>;
+});
 
-export const renameSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(255),
-}) satisfies z.ZodType<RenameInput>;
-
-export const createFolderSchema = z.object({
+export const createFolderSchema = nameSchema.extend({
   dataroomId: uuidSchema,
   parentFolderId: uuidSchema.nullable(),
-  name: z.string().trim().min(1, "Name is required").max(255),
 }) satisfies z.ZodType<CreateFolderInput>;
 
 export const contentsQuerySchema = z.object({
@@ -31,10 +27,9 @@ export const contentsQuerySchema = z.object({
   search: z.string().trim().min(1).optional(),
 }) satisfies z.ZodType<ContentsQuery>;
 
-export const confirmUploadSchema = z.object({
+export const confirmUploadSchema = nameSchema.extend({
   dataroomId: uuidSchema,
   folderId: uuidSchema.nullable(),
-  name: z.string().trim().min(1).max(255),
   size: z.number().int().positive().max(MAX_FILE_SIZE, "File exceeds the 100MB limit"),
   blobUrl: z.string().url(),
   blobPathname: z.string().min(1),
@@ -48,3 +43,5 @@ export const starEntitySchema = z.object({
 export const trashQuerySchema = z.object({
   dataroomId: uuidSchema.optional(),
 }) satisfies z.ZodType<TrashQuery>;
+
+export type NameInput = z.infer<typeof nameSchema>;

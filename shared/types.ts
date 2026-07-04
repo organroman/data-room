@@ -78,14 +78,8 @@ export interface ApiErrorBody {
 
 // Request/query DTOs — the contract shared by the frontend api client and the
 // backend's zod validators (validation.ts asserts its schemas match these).
-
-export interface CreateDataroomInput {
-  name: string;
-}
-
-export interface RenameInput {
-  name: string;
-}
+// Create/rename name-only bodies use NameInput from ./validation instead of a
+// dedicated interface here, since nameSchema is their single source of truth.
 
 export interface CreateFolderInput {
   dataroomId: string;

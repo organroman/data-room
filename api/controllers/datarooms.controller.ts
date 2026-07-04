@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import * as dataroomsService from "../services/datarooms.service";
-import type { CreateDataroomInput, RenameInput, ContentsQuery } from "@shared/types";
+import type { ContentsQuery } from "@shared/types";
+import type { NameInput } from "@shared/validation";
 
 export async function listDatarooms(_req: Request, res: Response) {
   const summaries = await dataroomsService.listDatarooms();
@@ -8,13 +9,13 @@ export async function listDatarooms(_req: Request, res: Response) {
 }
 
 export async function createDataroom(req: Request, res: Response) {
-  const { name } = req.body as CreateDataroomInput;
+  const { name } = req.body as NameInput;
   const dataroom = await dataroomsService.createDataroom(name);
   res.status(201).json(dataroom);
 }
 
 export async function renameDataroom(req: Request, res: Response) {
-  const { name } = req.body as RenameInput;
+  const { name } = req.body as NameInput;
   const dataroom = await dataroomsService.renameDataroom(req.params.id, name);
   res.json(dataroom);
 }

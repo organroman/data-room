@@ -13,8 +13,10 @@ export function AppShell() {
           <Separator orientation="vertical" className="h-4" />
           <span className="font-semibold">Acme Corp.</span>
         </header>
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <Outlet />
+        <div className="flex flex-1 flex-col overflow-y-auto">
+          <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col">
+            <Outlet />
+          </div>
         </div>
       </SidebarInset>
     </SidebarProvider>

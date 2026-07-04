@@ -2,7 +2,8 @@ import type { Request, Response } from "express";
 import type { HandleUploadBody } from "@vercel/blob/client";
 import { generateUploadToken } from "../lib/blob";
 import * as filesService from "../services/files.service";
-import type { ConfirmUploadInput, RenameInput } from "@shared/types";
+import type { ConfirmUploadInput } from "@shared/types";
+import type { NameInput } from "@shared/validation";
 
 export async function getUploadUrl(req: Request, res: Response) {
   // Body shape here is dictated by @vercel/blob's client `upload()` helper, not our
@@ -19,7 +20,7 @@ export async function confirmUpload(req: Request, res: Response) {
 }
 
 export async function renameFile(req: Request, res: Response) {
-  const { name } = req.body as RenameInput;
+  const { name } = req.body as NameInput;
   const file = await filesService.renameFile(req.params.id, name);
   res.json(file);
 }

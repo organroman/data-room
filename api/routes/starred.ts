@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { asyncHandler } from "../lib/handler";
 import { validateBody } from "../lib/validate";
-import { starEntitySchema } from "../lib/validation";
+import { starEntitySchema } from "@shared/validation";
 import * as controller from "../controllers/starred.controller";
 
 export const starredRouter = Router();
