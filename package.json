@@ -20,6 +20,7 @@
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.9",
     "@fontsource-variable/inter": "^5.2.8",
+    "@hookform/resolvers": "^5.4.0",
     "@tailwindcss/vite": "^4.3.2",
     "@tanstack/react-query": "^5.101.2",
     "@vercel/blob": "^0.27.1",
@@ -33,6 +34,7 @@
     "radix-ui": "^1.6.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-hook-form": "^7.80.0",
     "react-pdf": "^9.2.1",
     "react-router-dom": "^7.2.0",
     "shadcn": "^4.13.0",
