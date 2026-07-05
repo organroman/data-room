@@ -9,7 +9,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    setupFiles: ["./api/test/setup.ts"],
+    setupFiles: ["./server/test/setup.ts"],
     fileParallelism: false,
   },
 });

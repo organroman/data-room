@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "tsBuildInfoFile": "../node_modules/.tmp/tsconfig.server.tsbuildinfo",
+    "tsBuildInfoFile": "../node_modules/.tmp/tsconfig.api.tsbuildinfo",
     "target": "es2023",
     "lib": ["ES2023"],
     "types": ["node"],
@@ -19,9 +19,12 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
 
+    // index.ts imports ../server/app, so this project transitively type-checks
+    // the whole server/ dependency graph too — it needs the same alias server/
+    // itself uses, even though no file directly under api/ imports @shared.
     "paths": {
       "@shared/*": ["../shared/*"]
     }
   },
-  "include": ["**/*", "../shared/**/*", "../scripts/**/*"]
+  "include": ["*.ts"]
 }

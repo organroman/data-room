@@ -82,7 +82,7 @@ npm run build       # production build (what Vercel runs on deploy)
 
 ### Tests
 
-Manual end-to-end QA was the primary verification method throughout (this is a UI-heavy app; most bugs were interaction/state bugs a unit test wouldn't catch). On top of that, there's a small integration test suite (`api/services/dataRoomFlows.test.ts`) covering the two pieces of server-side logic that are easy to get subtly wrong and hard to eyeball-verify:
+Manual end-to-end QA was the primary verification method throughout (this is a UI-heavy app; most bugs were interaction/state bugs a unit test wouldn't catch). On top of that, there's a small integration test suite (`server/services/dataRoomFlows.test.ts`) covering the two pieces of server-side logic that are easy to get subtly wrong and hard to eyeball-verify:
 
 - **Recursive folder soft-delete/restore** — deleting a folder must cascade `deleted_at` to every descendant, but Trash should only show the *root* of the deletion, not every nested file and folder separately; restoring the root must bring the whole subtree back.
 - **Duplicate file name resolution** — uploading a file with a colliding name should auto-suffix (`Summary.pdf` → `Summary (1).pdf` → `Summary (2).pdf`) rather than reject.
@@ -92,7 +92,11 @@ These run against the real local Postgres database (no mocking — the behavior 
 ## Project structure
 
 ```
-/api        Express backend (routes → controllers → services → db), deployed as one Vercel function
+/api        Vercel serverless entrypoint only (api/index.ts, re-exporting the Express app from /server).
+            Vercel treats every file directly under /api as its own function, so the actual backend
+            code deliberately lives outside it in /server — otherwise each route/controller/service
+            file would count as a separate function against the Hobby plan's function-count limit.
+/server     Express backend (routes → controllers → services → db)
 /frontend   React SPA (Vite root), organized by Feature-Sliced Design:
               src/app        — App shell composition, providers, router
               src/pages      — route-level page compositions (dashboard, dataroom, trash, starred, ...)
@@ -115,21 +119,21 @@ The task explicitly permits mocking all CRUD in-browser (IndexedDB, localStorage
 ### Postgres over Mongo
 
 Folders and files form a tree with real referential-integrity needs: a folder's parent must exist, deleting a folder must cascade to its descendants, and names must be unique among live siblings. Postgres gives us:
-- Recursive CTEs for tree operations (descendant lookup for cascading soft-delete, breadcrumb ancestor walks) — see `api/services/folders.service.ts` and `api/services/datarooms.service.ts`.
+- Recursive CTEs for tree operations (descendant lookup for cascading soft-delete, breadcrumb ancestor walks) — see `server/services/folders.service.ts` and `server/services/datarooms.service.ts`.
 - Partial unique indexes to enforce "no duplicate name among live (non-deleted) siblings" at the database layer, not just in application code.
 
 Mongo's document model would fight this: either denormalize the whole path into every document (painful to keep consistent under renames/moves) or do the recursion in application code.
 
 ### Files live in Blob storage, never in Postgres
 
-Only file *metadata* (name, size, mime type, blob URL) is stored in the database; the PDF bytes go straight to Vercel Blob via a direct browser-to-blob upload (the backend only issues a short-lived client upload token — see `api/lib/blob.ts` and `POST /api/files/upload-url`). This keeps the database small and fast, and avoids proxying large file bodies through a serverless function (which has a request-body size ceiling well under our 100MB file limit).
+Only file *metadata* (name, size, mime type, blob URL) is stored in the database; the PDF bytes go straight to Vercel Blob via a direct browser-to-blob upload (the backend only issues a short-lived client upload token — see `server/lib/blob.ts` and `POST /api/files/upload-url`). This keeps the database small and fast, and avoids proxying large file bodies through a serverless function (which has a request-body size ceiling well under our 100MB file limit).
 
 ### Duplicate names: auto-suffix on upload, hard reject on rename
 
 - **Uploading** a file with a name that collides with a live sibling gets auto-suffixed (`Summary.pdf` → `Summary (1).pdf`), with the UI surfacing a notice that it happened. This matches how most consumer file managers behave for background uploads, where blocking on every collision would be disruptive.
 - **Renaming** a folder or file to a colliding name is rejected inline (409 + an error shown right in the rename field), since renaming is a single deliberate action the user is actively watching — better to let them pick a different name immediately than silently rename it out from under them.
 
-Both are enforced by the same database partial unique index (`folders_unique_name_per_parent` / `files_unique_name_per_parent`); the upload path resolves the name and retries on conflict (`api/services/files.service.ts`), the rename path just surfaces the conflict as a 409.
+Both are enforced by the same database partial unique index (`folders_unique_name_per_parent` / `files_unique_name_per_parent`); the upload path resolves the name and retries on conflict (`server/services/files.service.ts`), the rename path just surfaces the conflict as a 409.
 
 ### Soft-delete, not hard-delete
 
