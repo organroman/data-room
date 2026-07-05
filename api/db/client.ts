@@ -6,7 +6,7 @@ if (!process.env.POSTGRES_URL) {
   throw new Error("POSTGRES_URL environment variable is not set");
 }
 
-const pool = new Pool({
+export const pool = new Pool({
   connectionString: process.env.POSTGRES_URL,
   ssl: process.env.POSTGRES_URL.includes("localhost") ? false : { rejectUnauthorized: false },
 });
