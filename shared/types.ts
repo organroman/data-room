@@ -66,6 +66,9 @@ export interface StarredEntry {
   dataroomId: string;
   dataroomName: string;
   name: string;
+  // present only when entityType is "file" — the file's parent folder (null = dataroom root),
+  // needed to build the correct nested vs. root preview URL.
+  folderId?: string | null;
   // present only when entityType is "file"
   mimeType?: string;
 }

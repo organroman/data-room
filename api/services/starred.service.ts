@@ -57,6 +57,7 @@ export async function listStarredEntries(): Promise<StarredEntry[]> {
         dataroomId: files.dataroomId,
         dataroomName: datarooms.name,
         mimeType: files.mimeType,
+        folderId: files.folderId,
       })
       .from(starredItems)
       .innerJoin(files, eq(files.id, starredItems.entityId))
@@ -98,6 +99,7 @@ export async function listStarredEntries(): Promise<StarredEntry[]> {
         dataroomName: f.dataroomName,
         name: f.name,
         mimeType: f.mimeType,
+        folderId: f.folderId,
       }),
     ),
   ];
