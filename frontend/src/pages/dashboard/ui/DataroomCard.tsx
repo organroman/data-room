@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Folder, Pencil, Star, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ExternalLink, Folder, Pencil, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
@@ -19,6 +20,7 @@ export function DataroomCard({ dataroom }: { dataroom: DataroomSummary }) {
   const del = useDialog();
   const { mutate: star } = useStarEntity();
   const { mutate: unstar } = useUnstarEntity();
+  const navigate = useNavigate();
 
   function toggleStar(e: React.MouseEvent) {
     e.preventDefault();
@@ -41,7 +43,9 @@ export function DataroomCard({ dataroom }: { dataroom: DataroomSummary }) {
         <CardHeader className="flex-row items-start justify-between gap-2 space-y-0 relative">
           <div className="flex min-w-0 flex-col gap-4">
             <Folder className="size-10 shrink-0 text-primary" />
-            <span className="truncate font-medium text-lg">{dataroom.name}</span>
+            <span className="truncate font-medium text-lg">
+              {dataroom.name}
+            </span>
           </div>
           <Button
             variant="ghost"
@@ -69,8 +73,18 @@ export function DataroomCard({ dataroom }: { dataroom: DataroomSummary }) {
             </p>
             <ActionsMenu
               items={[
+                {
+                  label: "Open",
+                  icon: ExternalLink,
+                  onSelect: () => navigate(`/datarooms/${dataroom.id}`),
+                },
                 { label: "Rename", icon: Pencil, onSelect: rename.openDialog },
-                { label: "Delete", icon: Trash2, onSelect: del.openDialog, variant: "destructive" },
+                {
+                  label: "Delete",
+                  icon: Trash2,
+                  onSelect: del.openDialog,
+                  variant: "destructive",
+                },
               ]}
             />
           </div>
