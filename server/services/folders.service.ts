@@ -5,7 +5,7 @@ import { ApiError } from "../lib/errors.js";
 import { isUniqueViolation } from "../lib/db-errors.js";
 import { serializeFolderPlain } from "../lib/serialize.js";
 import { deleteBlobs } from "../lib/blob.js";
-import type { Folder } from "@shared/types";
+import type { Folder } from "../../shared/types.js";
 
 const NAME_CONFLICT_MESSAGE = "An item with this name already exists in this location.";
 

@@ -5,7 +5,7 @@ import { ApiError } from "../lib/errors.js";
 import { deleteBlobs } from "../lib/blob.js";
 import { serializeDataroom, serializeFolderPlain, serializeFolderEntry, serializeFileEntry } from "../lib/serialize.js";
 import { getStarredIds } from "./starred.service.js";
-import type { Dataroom, DataroomSummary, FolderContents, BrowserEntry } from "@shared/types";
+import type { Dataroom, DataroomSummary, FolderContents, BrowserEntry } from "../../shared/types.js";
 
 interface DataroomStats {
   storageBytes: number;

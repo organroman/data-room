@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import * as starredService from "../services/starred.service.js";
-import type { StarEntityInput } from "@shared/types";
+import type { StarEntityInput } from "../../shared/types.js";
 
 export async function listStarred(_req: Request, res: Response) {
   const entries = await starredService.listStarredEntries();

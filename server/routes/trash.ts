@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { asyncHandler } from "../lib/handler.js";
 import { validateQuery } from "../lib/validate.js";
-import { trashQuerySchema } from "@shared/validation";
+import { trashQuerySchema } from "../../shared/validation.js";
 import * as controller from "../controllers/trash.controller.js";
 
 export const trashRouter = Router();

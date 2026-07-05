@@ -2,8 +2,8 @@ import type { Request, Response } from "express";
 import type { HandleUploadBody } from "@vercel/blob/client";
 import { generateUploadToken } from "../lib/blob.js";
 import * as filesService from "../services/files.service.js";
-import type { ConfirmUploadInput } from "@shared/types";
-import type { NameInput } from "@shared/validation";
+import type { ConfirmUploadInput } from "../../shared/types.js";
+import type { NameInput } from "../../shared/validation.js";
 
 export async function getUploadUrl(req: Request, res: Response) {
   // Body shape here is dictated by @vercel/blob's client `upload()` helper, not our

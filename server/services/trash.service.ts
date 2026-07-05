@@ -5,7 +5,7 @@ import { ApiError } from "../lib/errors.js";
 import { folderIsTrashRoot, restoreFolderById, purgeFolderPermanently } from "./folders.service.js";
 import { fileIsTrashRoot, restoreFile, purgeFilePermanently } from "./files.service.js";
 import { restoreDataroomById, purgeDataroomPermanently } from "./datarooms.service.js";
-import type { EntityType, TrashEntry } from "@shared/types";
+import type { EntityType, TrashEntry } from "../../shared/types.js";
 
 export async function listTrash(dataroomId?: string): Promise<TrashEntry[]> {
   await purgeExpiredTrash();

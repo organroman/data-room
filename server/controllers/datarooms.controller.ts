@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import * as dataroomsService from "../services/datarooms.service.js";
-import type { ContentsQuery } from "@shared/types";
-import type { NameInput } from "@shared/validation";
+import type { ContentsQuery } from "../../shared/types.js";
+import type { NameInput } from "../../shared/validation.js";
 
 export async function listDatarooms(_req: Request, res: Response) {
   const summaries = await dataroomsService.listDatarooms();

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { asyncHandler } from "../lib/handler.js";
 import { validateBody } from "../lib/validate.js";
-import { createFolderSchema, nameSchema } from "@shared/validation";
+import { createFolderSchema, nameSchema } from "../../shared/validation.js";
 import * as controller from "../controllers/folders.controller.js";
 
 export const foldersRouter = Router();

@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import * as trashService from "../services/trash.service.js";
-import type { TrashQuery } from "@shared/types";
+import type { TrashQuery } from "../../shared/types.js";
 
 export async function listTrash(req: Request, res: Response) {
   const { dataroomId } = req.validatedQuery as TrashQuery;

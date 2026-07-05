@@ -6,7 +6,7 @@ import { isUniqueViolation } from "../lib/db-errors.js";
 import { serializeFileEntry } from "../lib/serialize.js";
 import { deleteBlobs } from "../lib/blob.js";
 import { getStarredIds } from "./starred.service.js";
-import type { FileEntry } from "@shared/types";
+import type { FileEntry } from "../../shared/types.js";
 
 const NAME_CONFLICT_MESSAGE = "An item with this name already exists in this location.";
 const MAX_NAME_RESOLUTION_ATTEMPTS = 5;

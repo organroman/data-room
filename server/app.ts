@@ -5,7 +5,7 @@ import { filesRouter } from "./routes/files.js";
 import { trashRouter } from "./routes/trash.js";
 import { starredRouter } from "./routes/starred.js";
 import { ApiError } from "./lib/errors.js";
-import type { ApiErrorBody } from "@shared/types";
+import type { ApiErrorBody } from "../shared/types.js";
 
 export const app = express();
 

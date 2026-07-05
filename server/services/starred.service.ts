@@ -1,7 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "../db/client.js";
 import { starredItems, datarooms, folders, files } from "../db/schema.js";
-import type { EntityType, StarredEntry } from "@shared/types";
+import type { EntityType, StarredEntry } from "../../shared/types.js";
 
 /** Returns the set of entityIds of the given type that are starred by the (implicit, single) owner. */
 export async function getStarredIds(entityType: EntityType): Promise<Set<string>> {
