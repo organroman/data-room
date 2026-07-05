@@ -1,6 +1,6 @@
 import type { RequestHandler } from "express";
 import type { ZodType } from "zod";
-import { ApiError } from "./errors";
+import { ApiError } from "./errors.js";
 
 declare global {
   namespace Express {

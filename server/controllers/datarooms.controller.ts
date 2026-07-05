@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import * as dataroomsService from "../services/datarooms.service";
+import * as dataroomsService from "../services/datarooms.service.js";
 import type { ContentsQuery } from "@shared/types";
 import type { NameInput } from "@shared/validation";
 

@@ -1,11 +1,11 @@
 import { sql, and, eq, isNull } from "drizzle-orm";
-import { db } from "../db/client";
-import { datarooms, folders, files } from "../db/schema";
-import { ApiError } from "../lib/errors";
-import { isUniqueViolation } from "../lib/db-errors";
-import { serializeFileEntry } from "../lib/serialize";
-import { deleteBlobs } from "../lib/blob";
-import { getStarredIds } from "./starred.service";
+import { db } from "../db/client.js";
+import { datarooms, folders, files } from "../db/schema.js";
+import { ApiError } from "../lib/errors.js";
+import { isUniqueViolation } from "../lib/db-errors.js";
+import { serializeFileEntry } from "../lib/serialize.js";
+import { deleteBlobs } from "../lib/blob.js";
+import { getStarredIds } from "./starred.service.js";
 import type { FileEntry } from "@shared/types";
 
 const NAME_CONFLICT_MESSAGE = "An item with this name already exists in this location.";

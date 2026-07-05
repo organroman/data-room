@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import type { HandleUploadBody } from "@vercel/blob/client";
-import { generateUploadToken } from "../lib/blob";
-import * as filesService from "../services/files.service";
+import { generateUploadToken } from "../lib/blob.js";
+import * as filesService from "../services/files.service.js";
 import type { ConfirmUploadInput } from "@shared/types";
 import type { NameInput } from "@shared/validation";
 

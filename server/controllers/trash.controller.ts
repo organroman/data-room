@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import * as trashService from "../services/trash.service";
+import * as trashService from "../services/trash.service.js";
 import type { TrashQuery } from "@shared/types";
 
 export async function listTrash(req: Request, res: Response) {

@@ -1,10 +1,10 @@
 import { sql, and, eq, isNull, ilike } from "drizzle-orm";
-import { db } from "../db/client";
-import { datarooms, folders, files } from "../db/schema";
-import { ApiError } from "../lib/errors";
-import { deleteBlobs } from "../lib/blob";
-import { serializeDataroom, serializeFolderPlain, serializeFolderEntry, serializeFileEntry } from "../lib/serialize";
-import { getStarredIds } from "./starred.service";
+import { db } from "../db/client.js";
+import { datarooms, folders, files } from "../db/schema.js";
+import { ApiError } from "../lib/errors.js";
+import { deleteBlobs } from "../lib/blob.js";
+import { serializeDataroom, serializeFolderPlain, serializeFolderEntry, serializeFileEntry } from "../lib/serialize.js";
+import { getStarredIds } from "./starred.service.js";
 import type { Dataroom, DataroomSummary, FolderContents, BrowserEntry } from "@shared/types";
 
 interface DataroomStats {

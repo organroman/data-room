@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import * as foldersService from "../services/folders.service";
+import * as foldersService from "../services/folders.service.js";
 import type { CreateFolderInput } from "@shared/types";
 import type { NameInput } from "@shared/validation";
 

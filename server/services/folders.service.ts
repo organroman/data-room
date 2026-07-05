@@ -1,10 +1,10 @@
 import { sql, and, eq, isNull, inArray } from "drizzle-orm";
-import { db } from "../db/client";
-import { datarooms, folders, files } from "../db/schema";
-import { ApiError } from "../lib/errors";
-import { isUniqueViolation } from "../lib/db-errors";
-import { serializeFolderPlain } from "../lib/serialize";
-import { deleteBlobs } from "../lib/blob";
+import { db } from "../db/client.js";
+import { datarooms, folders, files } from "../db/schema.js";
+import { ApiError } from "../lib/errors.js";
+import { isUniqueViolation } from "../lib/db-errors.js";
+import { serializeFolderPlain } from "../lib/serialize.js";
+import { deleteBlobs } from "../lib/blob.js";
 import type { Folder } from "@shared/types";
 
 const NAME_CONFLICT_MESSAGE = "An item with this name already exists in this location.";

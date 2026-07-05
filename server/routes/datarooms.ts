@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { asyncHandler } from "../lib/handler";
-import { validateBody, validateQuery } from "../lib/validate";
+import { asyncHandler } from "../lib/handler.js";
+import { validateBody, validateQuery } from "../lib/validate.js";
 import { nameSchema, contentsQuerySchema } from "@shared/validation";
-import * as controller from "../controllers/datarooms.controller";
+import * as controller from "../controllers/datarooms.controller.js";
 
 export const dataroomsRouter = Router();
 

@@ -1,4 +1,4 @@
-import type { DataroomRow, FolderRow, FileRow } from "../db/schema";
+import type { DataroomRow, FolderRow, FileRow } from "../db/schema.js";
 import type { Dataroom, Folder, FolderEntry, FileEntry } from "@shared/types";
 
 export function serializeDataroom(row: DataroomRow): Dataroom {

@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { asyncHandler } from "../lib/handler";
-import { validateBody } from "../lib/validate";
+import { asyncHandler } from "../lib/handler.js";
+import { validateBody } from "../lib/validate.js";
 import { nameSchema, confirmUploadSchema } from "@shared/validation";
-import * as controller from "../controllers/files.controller";
+import * as controller from "../controllers/files.controller.js";
 
 export const filesRouter = Router();
 

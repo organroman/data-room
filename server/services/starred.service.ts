@@ -1,6 +1,6 @@
 import { and, eq, isNull } from "drizzle-orm";
-import { db } from "../db/client";
-import { starredItems, datarooms, folders, files } from "../db/schema";
+import { db } from "../db/client.js";
+import { starredItems, datarooms, folders, files } from "../db/schema.js";
 import type { EntityType, StarredEntry } from "@shared/types";
 
 /** Returns the set of entityIds of the given type that are starred by the (implicit, single) owner. */

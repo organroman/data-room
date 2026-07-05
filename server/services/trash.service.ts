@@ -1,10 +1,10 @@
 import { and, eq, isNull, sql } from "drizzle-orm";
-import { db } from "../db/client";
-import { datarooms, folders, files } from "../db/schema";
-import { ApiError } from "../lib/errors";
-import { folderIsTrashRoot, restoreFolderById, purgeFolderPermanently } from "./folders.service";
-import { fileIsTrashRoot, restoreFile, purgeFilePermanently } from "./files.service";
-import { restoreDataroomById, purgeDataroomPermanently } from "./datarooms.service";
+import { db } from "../db/client.js";
+import { datarooms, folders, files } from "../db/schema.js";
+import { ApiError } from "../lib/errors.js";
+import { folderIsTrashRoot, restoreFolderById, purgeFolderPermanently } from "./folders.service.js";
+import { fileIsTrashRoot, restoreFile, purgeFilePermanently } from "./files.service.js";
+import { restoreDataroomById, purgeDataroomPermanently } from "./datarooms.service.js";
 import type { EntityType, TrashEntry } from "@shared/types";
 
 export async function listTrash(dataroomId?: string): Promise<TrashEntry[]> {

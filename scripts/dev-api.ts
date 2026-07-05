@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { app } from "../server/app";
+import { app } from "../server/app.js";
 
 // Runs the Express app as a plain long-lived server for fast local iteration
 // (paired with the Vite proxy in vite.config.ts). Production always goes

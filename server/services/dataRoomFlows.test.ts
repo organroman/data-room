@@ -1,11 +1,11 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
-import { db, pool } from "../db/client";
-import { datarooms, folders } from "../db/schema";
-import { createDataroom } from "./datarooms.service";
-import { createFolder, deleteFolder } from "./folders.service";
-import { confirmFileUpload } from "./files.service";
-import { listTrash, restoreTrashEntry } from "./trash.service";
+import { db, pool } from "../db/client.js";
+import { datarooms, folders } from "../db/schema.js";
+import { createDataroom } from "./datarooms.service.js";
+import { createFolder, deleteFolder } from "./folders.service.js";
+import { confirmFileUpload } from "./files.service.js";
+import { listTrash, restoreTrashEntry } from "./trash.service.js";
 
 // These are integration tests against the real local Postgres database (no
 // mocking) — the behaviors under test are recursive tree operations and a

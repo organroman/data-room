@@ -1,10 +1,10 @@
 import express, { type ErrorRequestHandler } from "express";
-import { dataroomsRouter } from "./routes/datarooms";
-import { foldersRouter } from "./routes/folders";
-import { filesRouter } from "./routes/files";
-import { trashRouter } from "./routes/trash";
-import { starredRouter } from "./routes/starred";
-import { ApiError } from "./lib/errors";
+import { dataroomsRouter } from "./routes/datarooms.js";
+import { foldersRouter } from "./routes/folders.js";
+import { filesRouter } from "./routes/files.js";
+import { trashRouter } from "./routes/trash.js";
+import { starredRouter } from "./routes/starred.js";
+import { ApiError } from "./lib/errors.js";
 import type { ApiErrorBody } from "@shared/types";
 
 export const app = express();
