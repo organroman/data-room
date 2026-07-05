@@ -11,8 +11,7 @@ interface ToolbarProps {
   view: ViewMode;
   onViewChange: (view: ViewMode) => void;
   onNewFolder: () => void;
-  dataroomId: string;
-  folderId: string | null;
+  onUploadFiles: (files: FileList) => void;
 }
 
 export function Toolbar({
@@ -21,8 +20,7 @@ export function Toolbar({
   view,
   onViewChange,
   onNewFolder,
-  dataroomId,
-  folderId,
+  onUploadFiles,
 }: ToolbarProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -58,7 +56,7 @@ export function Toolbar({
         <Button variant="outline" onClick={onNewFolder}>
           <FolderPlus /> New Folder
         </Button>
-        <UploadButton dataroomId={dataroomId} folderId={folderId} />
+        <UploadButton onSelectFiles={onUploadFiles} />
       </div>
     </div>
   );
