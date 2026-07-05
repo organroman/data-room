@@ -26,3 +26,15 @@ export function formatRelativeTime(isoDate: string): string {
   }
   return "just now";
 }
+
+const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+});
+
+export function formatDateTime(isoDate: string): string {
+  return dateTimeFormatter.format(new Date(isoDate));
+}

@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { nameSchema, type NameInput } from "@shared/validation";
 import {
@@ -22,7 +22,7 @@ interface NameFormDialogProps {
   pendingLabel: string;
   isPending: boolean;
   defaultName?: string;
-  onSubmit: (name: string) => void;
+  onSubmit: (name: string, form: UseFormReturn<NameInput>) => void;
 }
 
 export function NameFormDialog({
@@ -49,7 +49,7 @@ export function NameFormDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
-        <form onSubmit={form.handleSubmit((values) => onSubmit(values.name))}>
+        <form onSubmit={form.handleSubmit((values) => onSubmit(values.name, form))}>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>

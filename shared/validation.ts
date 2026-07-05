@@ -8,7 +8,7 @@ import type {
 } from "./types";
 
 const uuidSchema = z.string().uuid();
-const MAX_FILE_SIZE = 100 * 1024 * 1024;
+export const MAX_FILE_SIZE = 100 * 1024 * 1024;
 
 // Used for every create/rename form across dataroom, folder, and file — both as
 // the backend's request-body validator and, via zodResolver, as the frontend's
