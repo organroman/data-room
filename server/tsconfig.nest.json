@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": ["node"],
+
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
+
+    // rootDir spans the repo root (not just server/) because Nest source imports shared/*.ts
+    // via relative paths, and TS requires every compiled file to sit under rootDir. This mirrors
+    // the repo-root-relative structure into dist/, so the compiled entrypoint ends up at
+    // server/dist/server/src/main.js (see the start:nest script) rather than server/dist/main.js.
+    "rootDir": "..",
+    "outDir": "./dist",
+    "declaration": false,
+    "sourceMap": true,
+    "skipLibCheck": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*", "../shared/**/*"]
+}

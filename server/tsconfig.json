@@ -23,5 +23,6 @@
       "@shared/*": ["../shared/*"]
     }
   },
-  "include": ["**/*", "../shared/**/*", "../scripts/**/*"]
+  "include": ["**/*", "../shared/**/*", "../scripts/**/*"],
+  "exclude": ["src", "dist", "prisma"]
 }

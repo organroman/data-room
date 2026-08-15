@@ -5,7 +5,7 @@ import type {
   ConfirmUploadInput,
   StarEntityInput,
   TrashQuery,
-} from "./types";
+} from "./types.js";
 
 const uuidSchema = z.string().uuid();
 export const MAX_FILE_SIZE = 100 * 1024 * 1024;

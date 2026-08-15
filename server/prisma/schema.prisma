@@ -1,0 +1,235 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Domain models are added below once `npx @better-auth/cli generate` has appended
+// its own User/Session/Account/Verification models (see server/src/auth/auth.ts) —
+// our models relate to that generated User, so it has to exist first.
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  // Domain relations (added by hand, not by the Better Auth generator — see below)
+  datarooms    Dataroom[]
+  starredItems StarredItem[]
+  ownedShares  Share[]
+  shareGrants  ShareGrant[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// --- Domain models (v2) ---
+// Mirrors server/db/schema.ts (v1, Drizzle) — see CLAUDE.md §3 for the full design rationale,
+// including why the partial unique indexes below can't be expressed here and are added by
+// hand-editing the generated migration SQL instead.
+
+model Dataroom {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  ownerId   String
+  owner     User      @relation(fields: [ownerId], references: [id])
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+  deletedAt DateTime? @db.Timestamptz
+
+  folders Folder[]
+  files   File[]
+  shares  Share[]
+
+  @@index([ownerId])
+  @@map("datarooms")
+}
+
+model Folder {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dataroomId     String    @db.Uuid
+  dataroom       Dataroom  @relation(fields: [dataroomId], references: [id], onDelete: Cascade)
+  parentFolderId String?   @db.Uuid
+  parentFolder   Folder?   @relation("FolderParent", fields: [parentFolderId], references: [id], onDelete: Cascade)
+  children       Folder[]  @relation("FolderParent")
+  name           String
+  createdAt      DateTime  @default(now()) @db.Timestamptz
+  updatedAt      DateTime  @updatedAt @db.Timestamptz
+  deletedAt      DateTime? @db.Timestamptz
+
+  files  File[]
+  shares Share[]
+  // folders_unique_name_per_parent partial unique index added via hand-edited migration SQL —
+  // not expressible here, see CLAUDE.md §3.
+
+  @@index([dataroomId])
+  @@index([parentFolderId])
+  @@index([deletedAt])
+  @@map("folders")
+}
+
+model File {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dataroomId   String    @db.Uuid
+  dataroom     Dataroom  @relation(fields: [dataroomId], references: [id], onDelete: Cascade)
+  folderId     String?   @db.Uuid
+  folder       Folder?   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  name         String
+  size         BigInt
+  mimeType     String    @default("application/pdf")
+  blobUrl      String
+  blobPathname String
+  createdAt    DateTime  @default(now()) @db.Timestamptz
+  updatedAt    DateTime  @updatedAt @db.Timestamptz
+  deletedAt    DateTime? @db.Timestamptz
+
+  shares Share[]
+  // files_unique_name_per_parent partial unique index added via hand-edited migration SQL —
+  // same sentinel-coalesce trick as v1, see CLAUDE.md §3.
+
+  @@index([dataroomId])
+  @@index([folderId])
+  @@index([deletedAt])
+  @@map("files")
+}
+
+enum EntityType {
+  dataroom
+  folder
+  file
+}
+
+model StarredItem {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entityType EntityType
+  entityId   String     @db.Uuid
+  userId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime   @default(now()) @db.Timestamptz
+
+  // Plain unique now works — userId is always a real logged-in user, unlike v1's
+  // always-NULL placeholder column, so there's no NULL-collapsing sentinel needed.
+  @@unique([entityType, entityId, userId])
+  @@map("starred_items")
+}
+
+enum ShareMode {
+  public
+  permissioned
+}
+
+model Share {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  resourceType EntityType
+
+  // Exactly one of these three is set, matching resourceType — enforced in the service layer.
+  // Real FKs (vs. a polymorphic (resourceType, resourceId) pair like StarredItem uses) so a
+  // share auto-vanishes via onDelete: Cascade when its resource is purged — see CLAUDE.md §3.
+  dataroomId String?   @db.Uuid
+  dataroom   Dataroom? @relation(fields: [dataroomId], references: [id], onDelete: Cascade)
+  folderId   String?   @db.Uuid
+  folder     Folder?   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  fileId     String?   @db.Uuid
+  file       File?     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  ownerId String
+  owner   User      @relation(fields: [ownerId], references: [id])
+  mode    ShareMode
+  token   String?   @unique // set only for mode = public; crypto.randomBytes(32).toString("base64url")
+
+  // `role` intentionally omitted (viewer-only for v2) — adding `role ShareRole @default(viewer)`
+  // later is additive, not a remodel. Answers the README's "how does sharing extend to roles" question.
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  revokedAt DateTime? @db.Timestamptz
+  expiresAt DateTime? @db.Timestamptz // optional expiry for public links, distinct from manual revoke
+
+  grants ShareGrant[]
+
+  @@index([dataroomId])
+  @@index([folderId])
+  @@index([fileId])
+  @@index([token])
+  @@map("shares")
+}
+
+model ShareGrant {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  shareId       String   @db.Uuid
+  share         Share    @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  granteeUserId String
+  granteeUser   User     @relation(fields: [granteeUserId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now()) @db.Timestamptz
+
+  @@unique([shareId, granteeUserId])
+  @@map("share_grants")
+}
+
+model AccessLog {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  resourceType EntityType
+  resourceId   String     @db.Uuid
+  viewerUserId String?
+  shareId      String?    @db.Uuid
+  ipAddress    String?
+  createdAt    DateTime   @default(now()) @db.Timestamptz
+
+  // Composite index anticipating the README's 100k-scale question (CLAUDE.md §6b).
+  @@index([resourceType, resourceId, createdAt])
+  @@map("access_logs")
+}
