@@ -11,6 +11,7 @@ import { FoldersModule } from "./folders/folders.module.js";
 import { FilesModule } from "./files/files.module.js";
 import { StarredModule } from "./starred/starred.module.js";
 import { TrashModule } from "./trash/trash.module.js";
+import { SharingModule } from "./sharing/sharing.module.js";
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TrashModule } from "./trash/trash.module.js";
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     PrismaModule,
     AuthModule.forRoot({ auth }),
+    SharingModule,
     DataroomsModule,
     FoldersModule,
     FilesModule,

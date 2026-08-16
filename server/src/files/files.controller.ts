@@ -8,11 +8,12 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
 } from "@nestjs/common";
 import type { Request } from "express";
 import type { HandleUploadBody } from "@vercel/blob/client";
-import { Session, type UserSession } from "@thallesp/nestjs-better-auth";
+import { OptionalAuth, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { FilesService } from "./files.service.js";
 import { BlobService } from "../blob/blob.service.js";
 import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe.js";
@@ -66,7 +67,12 @@ export class FilesController {
   }
 
   @Get(":id")
-  getFile(@Session() session: UserSession, @Param("id") id: string) {
-    return this.filesService.getFileById(session.user.id, id);
+  @OptionalAuth()
+  getFile(
+    @Session() session: UserSession | undefined,
+    @Param("id") id: string,
+    @Query("token") token: string | undefined,
+  ) {
+    return this.filesService.getFileById(session?.user.id, id, token);
   }
 }

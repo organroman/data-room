@@ -40,6 +40,9 @@ export interface FileEntry {
   createdAt: string;
   updatedAt: string;
   starred: boolean;
+  // Set on single-file reads (getFileById) — same purpose as FolderContents.isOwner.
+  // Omitted from list contexts (dataroom contents, starred) where it isn't needed per-row.
+  isOwner?: boolean;
 }
 
 export type BrowserEntry = FolderEntry | FileEntry;
@@ -49,6 +52,9 @@ export interface FolderContents {
   folder: Folder | null; // null = root
   breadcrumbs: Array<Pick<Folder, "id" | "name">>;
   entries: BrowserEntry[];
+  // Whether the requesting principal owns this dataroom, vs. viewing it via a share —
+  // the frontend uses this to decide whether to render mutating UI (upload, rename, etc.).
+  isOwner: boolean;
 }
 
 export interface TrashEntry {
@@ -70,6 +76,43 @@ export interface StarredEntry {
   // needed to build the correct nested vs. root preview URL.
   folderId?: string | null;
   // present only when entityType is "file"
+  mimeType?: string;
+}
+
+export type ShareMode = "public" | "permissioned";
+
+export interface ShareGrantee {
+  /** ShareGrant row id (used to revoke just this one grantee). */
+  id: string;
+  userId: string;
+  email: string;
+  name: string;
+}
+
+export interface ShareSummary {
+  id: string;
+  resourceType: EntityType;
+  resourceId: string;
+  mode: ShareMode;
+  /** Present only for mode "public". */
+  token: string | null;
+  createdAt: string;
+  expiresAt: string | null;
+  /** Present only for mode "permissioned". */
+  grantees: ShareGrantee[];
+}
+
+export interface SharedWithMeEntry {
+  shareId: string;
+  entityType: EntityType;
+  entityId: string;
+  dataroomId: string;
+  dataroomName: string;
+  name: string;
+  ownerName: string;
+  ownerEmail: string;
+  // present only when entityType is "file"
+  folderId?: string | null;
   mimeType?: string;
 }
 
@@ -111,4 +154,19 @@ export interface StarEntityInput {
 
 export interface TrashQuery {
   dataroomId?: string;
+}
+
+export interface CreateShareInput {
+  resourceType: EntityType;
+  resourceId: string;
+  mode: ShareMode;
+  /** ISO datetime string, or null for "never expires". Ignored for mode "permissioned". */
+  expiresAt?: string | null;
+  /** Registered users to grant access to, by email. Ignored for mode "public". */
+  granteeEmails?: string[];
+}
+
+export interface SharesQuery {
+  resourceType: EntityType;
+  resourceId: string;
 }

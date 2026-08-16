@@ -3,9 +3,10 @@ import { DataroomsController } from "./datarooms.controller.js";
 import { DataroomsService } from "./datarooms.service.js";
 import { BlobModule } from "../blob/blob.module.js";
 import { StarredModule } from "../starred/starred.module.js";
+import { SharingModule } from "../sharing/sharing.module.js";
 
 @Module({
-  imports: [BlobModule, StarredModule],
+  imports: [BlobModule, StarredModule, SharingModule],
   controllers: [DataroomsController],
   providers: [DataroomsService],
   exports: [DataroomsService],

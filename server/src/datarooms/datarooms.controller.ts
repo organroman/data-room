@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query } from "@nestjs/common";
-import { Session, type UserSession } from "@thallesp/nestjs-better-auth";
+import { OptionalAuth, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { DataroomsService } from "./datarooms.service.js";
 import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe.js";
 import { nameSchema, contentsQuerySchema } from "../../../shared/validation.js";
@@ -44,11 +44,13 @@ export class DataroomsController {
   }
 
   @Get(":id/contents")
+  @OptionalAuth()
   getDataroomContents(
-    @Session() session: UserSession,
+    @Session() session: UserSession | undefined,
     @Param("id") id: string,
     @Query(new ZodValidationPipe(contentsQuerySchema, "Invalid query parameters")) query: ContentsQuery,
+    @Query("token") token: string | undefined,
   ) {
-    return this.dataroomsService.getDataroomContents(session.user.id, id, query.folderId, query.search);
+    return this.dataroomsService.getDataroomContents(session?.user.id, id, query.folderId, query.search, token);
   }
 }

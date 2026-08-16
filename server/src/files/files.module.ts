@@ -3,9 +3,10 @@ import { FilesController } from "./files.controller.js";
 import { FilesService } from "./files.service.js";
 import { BlobModule } from "../blob/blob.module.js";
 import { StarredModule } from "../starred/starred.module.js";
+import { SharingModule } from "../sharing/sharing.module.js";
 
 @Module({
-  imports: [BlobModule, StarredModule],
+  imports: [BlobModule, StarredModule, SharingModule],
   controllers: [FilesController],
   providers: [FilesService],
   exports: [FilesService],

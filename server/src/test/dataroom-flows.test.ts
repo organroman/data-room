@@ -6,6 +6,7 @@ import { DataroomsService } from "../datarooms/datarooms.service.js";
 import { FoldersService } from "../folders/folders.service.js";
 import { FilesService } from "../files/files.service.js";
 import { TrashService } from "../trash/trash.service.js";
+import { SharesAccessService } from "../sharing/shares-access.service.js";
 
 // Port of v1's server/services/dataRoomFlows.test.ts, against the v2 Nest+Prisma stack — real
 // integration tests against the local data_room_v2 Postgres database (no mocking), covering the
@@ -19,9 +20,10 @@ import { TrashService } from "../trash/trash.service.js";
 const prisma = new PrismaService();
 const blobService = new BlobService();
 const starredService = new StarredService(prisma);
-const dataroomsService = new DataroomsService(prisma, blobService, starredService);
+const sharesAccessService = new SharesAccessService(prisma);
+const dataroomsService = new DataroomsService(prisma, blobService, starredService, sharesAccessService);
 const foldersService = new FoldersService(prisma, blobService);
-const filesService = new FilesService(prisma, blobService, starredService);
+const filesService = new FilesService(prisma, blobService, starredService, sharesAccessService);
 const trashService = new TrashService(prisma, foldersService, filesService, dataroomsService);
 
 let userId: string;

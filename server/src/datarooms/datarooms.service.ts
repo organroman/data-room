@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service.js";
 import { BlobService } from "../blob/blob.service.js";
 import { StarredService } from "../starred/starred.service.js";
+import { SharesAccessService } from "../sharing/shares-access.service.js";
 import { ApiException } from "../common/exceptions/api.exception.js";
 import { serializeDataroom, serializeFolderPlain, serializeFolderEntry, serializeFileEntry } from "../common/serialize.js";
 import type { Dataroom, DataroomSummary, Folder, FolderContents, BrowserEntry } from "../../../shared/types.js";
@@ -15,15 +16,15 @@ interface DataroomStats {
 type RawCount = string | number | bigint | null;
 
 // Port of v1's server/services/datarooms.service.ts, scoped to a real owner (session.user.id)
-// throughout — see CLAUDE.md §4. Not yet share-aware: a dataroom is visible/mutable here only
-// to its owner, which is exactly Phase 2's scope ("no sharing yet, just must be your own
-// dataroom"); the OptionalAuth + access-resolution layer lands in Phase 3.
+// throughout — see CLAUDE.md §4. Mutations and the dashboard list stay strictly owner-only;
+// getDataroomContents (the read path) is share-aware as of Phase 3 — see its own doc comment.
 @Injectable()
 export class DataroomsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly blobService: BlobService,
     private readonly starredService: StarredService,
+    private readonly sharesAccessService: SharesAccessService,
   ) {}
 
   /** Storage/item counts per dataroom owned by `userId`, live (non-deleted) items only. */
@@ -148,16 +149,31 @@ export class DataroomsService {
     await this.prisma.dataroom.delete({ where: { id: dataroomId } });
   }
 
+  /**
+   * Share-aware as of Phase 3: `userId` is optional (an anonymous public-link visitor has
+   * none) and `token` carries a public-link credential. Authorization is delegated to
+   * SharesAccessService.assertCanView on the resource actually being browsed (the current
+   * folder, or the dataroom root if none) — covers ownership, a permissioned grant, or a
+   * valid public token, on that resource or an ancestor. See CLAUDE.md §5.
+   *
+   * `search` is dataroom-wide by design (v1 behavior), which would leak sibling content
+   * outside a folder-scoped share's subtree to a non-owner — so it's owner-only here; shared
+   * viewers browse folder-by-folder instead (still fully navigable via breadcrumbs).
+   */
   async getDataroomContents(
-    userId: string,
+    userId: string | undefined,
     dataroomId: string,
     folderId: string | undefined,
     search: string | undefined,
+    token: string | undefined,
   ): Promise<FolderContents> {
-    const dataroomRow = await this.prisma.dataroom.findFirst({
-      where: { id: dataroomId, ownerId: userId, deletedAt: null },
-    });
+    const targetType = folderId ? "folder" : "dataroom";
+    const targetId = folderId ?? dataroomId;
+    await this.sharesAccessService.assertCanView(targetType, targetId, userId, token);
+
+    const dataroomRow = await this.prisma.dataroom.findFirst({ where: { id: dataroomId, deletedAt: null } });
     if (!dataroomRow) throw ApiException.notFound("Data room");
+    const isOwner = dataroomRow.ownerId === userId;
 
     let folder: Folder | null = null;
     let breadcrumbs: Array<{ id: string; name: string }> = [];
@@ -170,16 +186,20 @@ export class DataroomsService {
       breadcrumbs = await this.getBreadcrumbs(folderId);
     }
 
-    const [starredFolderIds, starredFileIds] = await Promise.all([
-      this.starredService.getStarredIds(userId, "folder"),
-      this.starredService.getStarredIds(userId, "file"),
-    ]);
+    const effectiveSearch = isOwner ? search : undefined;
 
-    const folderWhere = search
-      ? { dataroomId, deletedAt: null, name: { contains: search, mode: "insensitive" as const } }
+    const [starredFolderIds, starredFileIds] = userId
+      ? await Promise.all([
+          this.starredService.getStarredIds(userId, "folder"),
+          this.starredService.getStarredIds(userId, "file"),
+        ])
+      : [new Set<string>(), new Set<string>()];
+
+    const folderWhere = effectiveSearch
+      ? { dataroomId, deletedAt: null, name: { contains: effectiveSearch, mode: "insensitive" as const } }
       : { dataroomId, deletedAt: null, parentFolderId: folderId ?? null };
-    const fileWhere = search
-      ? { dataroomId, deletedAt: null, name: { contains: search, mode: "insensitive" as const } }
+    const fileWhere = effectiveSearch
+      ? { dataroomId, deletedAt: null, name: { contains: effectiveSearch, mode: "insensitive" as const } }
       : { dataroomId, deletedAt: null, folderId: folderId ?? null };
 
     const [folderRows, fileRows] = await Promise.all([
@@ -192,6 +212,6 @@ export class DataroomsService {
       ...fileRows.map((f) => serializeFileEntry(f, starredFileIds.has(f.id))),
     ];
 
-    return { dataroom: serializeDataroom(dataroomRow), folder, breadcrumbs, entries };
+    return { dataroom: serializeDataroom(dataroomRow), folder, breadcrumbs, entries, isOwner };
   }
 }

@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service.js";
 import { BlobService } from "../blob/blob.service.js";
 import { StarredService } from "../starred/starred.service.js";
+import { SharesAccessService } from "../sharing/shares-access.service.js";
 import { ApiException } from "../common/exceptions/api.exception.js";
 import { isUniqueViolation } from "../common/db-errors.js";
 import { serializeFileEntry } from "../common/serialize.js";
@@ -39,6 +40,7 @@ export class FilesService {
     private readonly prisma: PrismaService,
     private readonly blobService: BlobService,
     private readonly starredService: StarredService,
+    private readonly sharesAccessService: SharesAccessService,
   ) {}
 
   /**
@@ -165,12 +167,22 @@ export class FilesService {
     await this.prisma.file.delete({ where: { id: fileId } });
   }
 
-  async getFileById(userId: string, fileId: string): Promise<FileEntry> {
-    const row = await this.prisma.file.findFirst({
-      where: { id: fileId, deletedAt: null, dataroom: { ownerId: userId } },
-    });
+  /**
+   * Share-aware as of Phase 3 (used by the file preview panel, reachable both from a
+   * dataroom the caller owns and from a shared/public view) — same pattern as
+   * DataroomsService.getDataroomContents, see its doc comment and CLAUDE.md §5.
+   */
+  async getFileById(userId: string | undefined, fileId: string, token: string | undefined): Promise<FileEntry> {
+    await this.sharesAccessService.assertCanView("file", fileId, userId, token);
+
+    const row = await this.prisma.file.findFirst({ where: { id: fileId, deletedAt: null } });
     if (!row) throw ApiException.notFound("File");
-    const starredIds = await this.starredService.getStarredIds(userId, "file");
-    return serializeFileEntry(row, starredIds.has(row.id));
+
+    const starredIds = userId ? await this.starredService.getStarredIds(userId, "file") : new Set<string>();
+    const dataroom = await this.prisma.dataroom.findUnique({
+      where: { id: row.dataroomId },
+      select: { ownerId: true },
+    });
+    return { ...serializeFileEntry(row, starredIds.has(row.id)), isOwner: dataroom?.ownerId === userId };
   }
 }

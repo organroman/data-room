@@ -5,6 +5,8 @@ import type {
   ConfirmUploadInput,
   StarEntityInput,
   TrashQuery,
+  CreateShareInput,
+  SharesQuery,
 } from "./types.js";
 
 const uuidSchema = z.string().uuid();
@@ -43,5 +45,25 @@ export const starEntitySchema = z.object({
 export const trashQuerySchema = z.object({
   dataroomId: uuidSchema.optional(),
 }) satisfies z.ZodType<TrashQuery>;
+
+const entityTypeSchema = z.enum(["dataroom", "folder", "file"]);
+
+export const createShareSchema = z
+  .object({
+    resourceType: entityTypeSchema,
+    resourceId: uuidSchema,
+    mode: z.enum(["public", "permissioned"]),
+    expiresAt: z.string().datetime().nullable().optional(),
+    granteeEmails: z.array(z.string().trim().email()).max(25).optional(),
+  })
+  .refine((v) => v.mode !== "permissioned" || (v.granteeEmails?.length ?? 0) > 0, {
+    message: "At least one email is required to share with specific people",
+    path: ["granteeEmails"],
+  }) satisfies z.ZodType<CreateShareInput>;
+
+export const sharesQuerySchema = z.object({
+  resourceType: entityTypeSchema,
+  resourceId: uuidSchema,
+}) satisfies z.ZodType<SharesQuery>;
 
 export type NameInput = z.infer<typeof nameSchema>;
