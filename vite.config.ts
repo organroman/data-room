@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "node:path";
 import "dotenv/config";
 
-const apiPort = process.env.API_PORT ?? 3001;
+const apiPort = process.env.NEST_PORT ?? 3001;
 
 export default defineConfig({
   root: path.resolve(import.meta.dirname, "./frontend"),

@@ -15,6 +15,10 @@ async function bootstrap() {
     origin: process.env.FRONTEND_ORIGIN ?? "http://localhost:5173",
     credentials: true,
   });
+  // Better Auth is mounted directly on the underlying HTTP adapter at its own explicit
+  // basePath ("/api/auth", set in auth.ts) and bypasses this prefix entirely — it composes
+  // correctly since the two never overlap.
+  app.setGlobalPrefix("api");
 
   const port = Number(process.env.NEST_PORT ?? 3001);
   await app.listen(port);
