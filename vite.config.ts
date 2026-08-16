@@ -8,6 +8,9 @@ const apiPort = process.env.NEST_PORT ?? 3001;
 
 export default defineConfig({
   root: path.resolve(import.meta.dirname, "./frontend"),
+  // .env lives at the repo root (shared with the backend's dotenv/config loading), not
+  // under frontend/ — Vite defaults envDir to `root`, so this has to be set explicitly.
+  envDir: import.meta.dirname,
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {

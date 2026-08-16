@@ -1,5 +1,9 @@
 import type { ApiErrorBody } from "@shared/types";
 
+// Empty locally (relative path, proxied by Vite — see vite.config.ts); the deployed
+// backend's origin in production, since frontend and backend are genuinely cross-origin there.
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
+
 export class ApiClientError extends Error {
   status: number;
   body: ApiErrorBody;
@@ -12,8 +16,11 @@ export class ApiClientError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(`${API_BASE}/api${path}`, {
     ...init,
+    // Required so the session cookie is sent — same-origin in dev (harmless there) and
+    // genuinely cross-origin in prod (Vercel frontend / Railway-or-Render backend).
+    credentials: "include",
     headers: { "Content-Type": "application/json", ...init?.headers },
   });
 
