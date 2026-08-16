@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Folder, FileText } from "lucide-react";
+import { Folder, FileText, Star, Pencil, FolderInput, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { ApiClientError } from "@/shared/api/client";
 import { useDialog } from "@/shared/hooks/use-dialog";
+import type { ActionsMenuItem } from "@/shared/components/actions-menu";
 import { useRenameFolder } from "@/features/folder-actions";
 import { useRenameFile } from "@/features/file-actions";
 import { useStarEntity, useUnstarEntity } from "@/features/star-item";
@@ -11,6 +12,7 @@ import type { BrowserEntry } from "@shared/types";
 export function useEntryActions(entry: BrowserEntry, dataroomId: string) {
   const rename = useDialog();
   const del = useDialog();
+  const move = useDialog();
   const [renameError, setRenameError] = useState<string>();
   const { mutate: star } = useStarEntity();
   const { mutate: unstar } = useUnstarEntity();
@@ -53,15 +55,25 @@ export function useEntryActions(entry: BrowserEntry, dataroomId: string) {
       ? `/datarooms/${dataroomId}/folders/${entry.folderId}/files/${entry.id}`
       : `/datarooms/${dataroomId}/files/${entry.id}`;
 
+  // Shared between EntryRow (table) and EntryCard (grid) — both views offer the same actions.
+  const menuItems: ActionsMenuItem[] = [
+    { label: entry.starred ? "Unstar" : "Star", icon: Star, onSelect: toggleStar },
+    { label: "Rename", icon: Pencil, onSelect: rename.openDialog },
+    ...(isFolder ? [] : [{ label: "Move to…", icon: FolderInput, onSelect: move.openDialog }]),
+    { label: "Delete", icon: Trash2, onSelect: del.openDialog, variant: "destructive" as const },
+  ];
+
   return {
     isFolder,
     icon: isFolder ? Folder : FileText,
     to,
     rename,
     del,
+    move,
     renameError,
     renamePending,
     handleRenameSubmit,
     toggleStar,
+    menuItems,
   };
 }

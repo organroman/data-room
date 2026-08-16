@@ -10,6 +10,15 @@ export function useRenameFile() {
   });
 }
 
+export function useMoveFile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ fileId, folderId }: { fileId: string; folderId: string | null }) =>
+      api.moveFile(fileId, folderId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.datarooms }),
+  });
+}
+
 export function useDeleteFile() {
   const qc = useQueryClient();
   return useMutation({

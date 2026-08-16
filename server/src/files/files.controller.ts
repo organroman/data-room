@@ -17,8 +17,8 @@ import { OptionalAuth, Session, type UserSession } from "@thallesp/nestjs-better
 import { FilesService } from "./files.service.js";
 import { BlobService } from "../blob/blob.service.js";
 import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe.js";
-import { nameSchema, confirmUploadSchema } from "../../../shared/validation.js";
-import type { ConfirmUploadInput } from "../../../shared/types.js";
+import { nameSchema, confirmUploadSchema, moveFileSchema } from "../../../shared/validation.js";
+import type { ConfirmUploadInput, MoveFileInput } from "../../../shared/types.js";
 
 @Controller("files")
 export class FilesController {
@@ -52,6 +52,15 @@ export class FilesController {
     body: { name: string },
   ) {
     return this.filesService.renameFile(session.user.id, id, body.name);
+  }
+
+  @Patch(":id/move")
+  moveFile(
+    @Session() session: UserSession,
+    @Param("id") id: string,
+    @Body(new ZodValidationPipe(moveFileSchema, "Invalid request body")) body: MoveFileInput,
+  ) {
+    return this.filesService.moveFile(session.user.id, id, body.folderId);
   }
 
   @Delete(":id")

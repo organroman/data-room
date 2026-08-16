@@ -8,3 +8,12 @@ export function useFile(fileId: string) {
     enabled: Boolean(fileId),
   });
 }
+
+/** Direct children of `folderId` (or the data room root) — powers the folder-tree-picker, one level at a time. */
+export function useSubfolders(dataroomId: string, folderId: string | undefined, enabled: boolean) {
+  return useQuery({
+    queryKey: ["datarooms", dataroomId, "folder-tree", folderId ?? "root"],
+    queryFn: () => api.listSubfolders(dataroomId, folderId),
+    enabled,
+  });
+}

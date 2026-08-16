@@ -10,7 +10,7 @@ import { ErrorMessage } from "@/shared/components/error-message";
 import { ActionsMenu } from "@/shared/components/actions-menu";
 import { InlineRenameField } from "@/shared/components/inline-rename-field";
 import { useFile, DeleteFileDialog } from "@/features/file-actions";
-import { useEntryActions } from "./useEntryActions";
+import { useEntryActions } from "../model/useEntryActions";
 import type { FileEntry } from "@shared/types";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(

@@ -7,6 +7,7 @@ import type {
   TrashQuery,
   CreateShareInput,
   SharesQuery,
+  MoveFileInput,
 } from "./types.js";
 
 const uuidSchema = z.string().uuid();
@@ -28,6 +29,10 @@ export const contentsQuerySchema = z.object({
   folderId: uuidSchema.optional(),
   search: z.string().trim().min(1).optional(),
 }) satisfies z.ZodType<ContentsQuery>;
+
+export const moveFileSchema = z.object({
+  folderId: uuidSchema.nullable(),
+}) satisfies z.ZodType<MoveFileInput>;
 
 export const confirmUploadSchema = nameSchema.extend({
   dataroomId: uuidSchema,

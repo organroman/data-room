@@ -20,3 +20,13 @@ export function isUniqueViolation(err: unknown, constraint?: string): boolean {
   // all is already a strong signal in a single-unique-index-per-table context.
   return true;
 }
+
+/**
+ * True when a `where` clause combining a unique field (e.g. `id`) with extra non-unique
+ * conditions (ownership, a relation check, etc.) matched no row — Prisma's way of reporting
+ * "either it doesn't exist, or it exists but the extra conditions excluded it" from a single
+ * query, instead of a separate existence-check round trip beforehand.
+ */
+export function isRecordNotFound(err: unknown): boolean {
+  return err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025";
+}

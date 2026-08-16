@@ -1,13 +1,13 @@
 import { Link } from "react-router-dom";
-import { Star, Pencil, Trash2 } from "lucide-react";
+import { Star } from "lucide-react";
 import { TableCell, TableRow } from "@/shared/ui/table";
 import { InlineRenameField } from "@/shared/components/inline-rename-field";
 import { ActionsMenu } from "@/shared/components/actions-menu";
 import { formatBytes, formatDateTime } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { DeleteFolderDialog } from "@/features/folder-actions";
-import { DeleteFileDialog } from "@/features/file-actions";
-import { useEntryActions } from "./useEntryActions";
+import { DeleteFileDialog, MoveFileDialog } from "@/features/file-actions";
+import { useEntryActions } from "../model/useEntryActions";
 import type { BrowserEntry } from "@shared/types";
 
 interface EntryRowProps {
@@ -16,8 +16,18 @@ interface EntryRowProps {
 }
 
 export function EntryRow({ entry, dataroomId }: EntryRowProps) {
-  const { isFolder, icon: Icon, to, rename, del, renameError, renamePending, handleRenameSubmit, toggleStar } =
-    useEntryActions(entry, dataroomId);
+  const {
+    isFolder,
+    icon: Icon,
+    to,
+    rename,
+    del,
+    move,
+    renameError,
+    renamePending,
+    handleRenameSubmit,
+    menuItems,
+  } = useEntryActions(entry, dataroomId);
 
   return (
     <TableRow>
@@ -48,15 +58,9 @@ export function EntryRow({ entry, dataroomId }: EntryRowProps) {
         {entry.type === "folder" ? "–" : formatBytes(entry.size)}
       </TableCell>
       <TableCell className="text-right">
-        <ActionsMenu
-          items={[
-            { label: entry.starred ? "Unstar" : "Star", icon: Star, onSelect: toggleStar },
-            { label: "Rename", icon: Pencil, onSelect: rename.openDialog },
-            { label: "Delete", icon: Trash2, onSelect: del.openDialog, variant: "destructive" },
-          ]}
-        />
+        <ActionsMenu items={menuItems} />
       </TableCell>
-      {isFolder ? (
+      {entry.type === "folder" ? (
         <DeleteFolderDialog
           open={del.dialogOpen}
           onOpenChange={del.setDialogOpen}
@@ -64,12 +68,22 @@ export function EntryRow({ entry, dataroomId }: EntryRowProps) {
           folderName={entry.name}
         />
       ) : (
-        <DeleteFileDialog
-          open={del.dialogOpen}
-          onOpenChange={del.setDialogOpen}
-          fileId={entry.id}
-          fileName={entry.name}
-        />
+        <>
+          <DeleteFileDialog
+            open={del.dialogOpen}
+            onOpenChange={del.setDialogOpen}
+            fileId={entry.id}
+            fileName={entry.name}
+          />
+          <MoveFileDialog
+            open={move.dialogOpen}
+            onOpenChange={move.setDialogOpen}
+            dataroomId={dataroomId}
+            fileId={entry.id}
+            fileName={entry.name}
+            currentFolderId={entry.folderId}
+          />
+        </>
       )}
     </TableRow>
   );

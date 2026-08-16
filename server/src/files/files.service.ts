@@ -5,7 +5,7 @@ import { BlobService } from "../blob/blob.service.js";
 import { StarredService } from "../starred/starred.service.js";
 import { SharesAccessService } from "../sharing/shares-access.service.js";
 import { ApiException } from "../common/exceptions/api.exception.js";
-import { isUniqueViolation } from "../common/db-errors.js";
+import { isUniqueViolation, isRecordNotFound } from "../common/db-errors.js";
 import { serializeFileEntry } from "../common/serialize.js";
 import type { FileEntry } from "../../../shared/types.js";
 
@@ -135,6 +135,49 @@ export class FilesService {
       const starredIds = await this.starredService.getStarredIds(userId, "file");
       return serializeFileEntry(row, starredIds.has(row.id));
     } catch (err) {
+      if (isUniqueViolation(err, "files_unique_name_per_parent")) {
+        throw ApiException.conflict(NAME_CONFLICT_MESSAGE);
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * Moves a file to another folder within the same data room (or to the root, via
+   * `targetFolderId: null`). Name-conflict handling matches rename, not upload — a hard 409,
+   * no auto-suffix: this is a single deliberate action the user is watching happen (same
+   * category as rename), not a background/batch operation where silently renaming would be
+   * the friendlier default. See CLAUDE.md §6.
+   *
+   * One query does the whole authorization + move: Prisma allows extra non-unique conditions
+   * alongside a unique `id` in `update()`, applied as additional WHERE clauses against the row
+   * Prisma found by id — so ownership *and* "the target folder exists in this same data room"
+   * are checked in the same round trip as the update itself (and, unlike `updateMany`, `update`
+   * returns the row). A combined-condition miss surfaces as P2025 (isRecordNotFound), collapsing
+   * "file not found", "not yours", and "target folder isn't in this data room" into one 404 —
+   * an acceptable trade for one query instead of three, since an invalid folderId here only
+   * happens from a stale/tampered request, never from the folder-tree-picker UI.
+   */
+  async moveFile(userId: string, fileId: string, targetFolderId: string | null): Promise<FileEntry> {
+    try {
+      const row = await this.prisma.file.update({
+        where: {
+          id: fileId,
+          deletedAt: null,
+          dataroom: {
+            ownerId: userId,
+            ...(targetFolderId ? { folders: { some: { id: targetFolderId, deletedAt: null } } } : {}),
+          },
+        },
+        data: { folderId: targetFolderId, updatedAt: new Date() },
+      });
+      const starred = await this.prisma.starredItem.findFirst({
+        where: { entityType: "file", entityId: fileId, userId },
+        select: { id: true },
+      });
+      return serializeFileEntry(row, Boolean(starred));
+    } catch (err) {
+      if (isRecordNotFound(err)) throw ApiException.notFound("File");
       if (isUniqueViolation(err, "files_unique_name_per_parent")) {
         throw ApiException.conflict(NAME_CONFLICT_MESSAGE);
       }

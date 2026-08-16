@@ -1,13 +1,13 @@
 import { Link } from "react-router-dom";
-import { Star, Pencil, Trash2 } from "lucide-react";
+import { Star } from "lucide-react";
 import { Card, CardContent } from "@/shared/ui/card";
 import { ActionsMenu } from "@/shared/components/actions-menu";
 import { InlineRenameField } from "@/shared/components/inline-rename-field";
 import { formatBytes } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { DeleteFolderDialog } from "@/features/folder-actions";
-import { DeleteFileDialog } from "@/features/file-actions";
-import { useEntryActions } from "./useEntryActions";
+import { DeleteFileDialog, MoveFileDialog } from "@/features/file-actions";
+import { useEntryActions } from "../model/useEntryActions";
 import type { BrowserEntry } from "@shared/types";
 
 interface EntryCardProps {
@@ -16,8 +16,18 @@ interface EntryCardProps {
 }
 
 export function EntryCard({ entry, dataroomId }: EntryCardProps) {
-  const { isFolder, icon: Icon, to, rename, del, renameError, renamePending, handleRenameSubmit, toggleStar } =
-    useEntryActions(entry, dataroomId);
+  const {
+    isFolder,
+    icon: Icon,
+    to,
+    rename,
+    del,
+    move,
+    renameError,
+    renamePending,
+    handleRenameSubmit,
+    menuItems,
+  } = useEntryActions(entry, dataroomId);
 
   return (
     <>
@@ -28,13 +38,7 @@ export function EntryCard({ entry, dataroomId }: EntryCardProps) {
             <Icon className={cn("size-8 shrink-0", isFolder ? "text-muted-foreground" : "text-red-500")} />
             <div className="relative z-10 flex items-center gap-0.5">
               {entry.starred && <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />}
-              <ActionsMenu
-                items={[
-                  { label: entry.starred ? "Unstar" : "Star", icon: Star, onSelect: toggleStar },
-                  { label: "Rename", icon: Pencil, onSelect: rename.openDialog },
-                  { label: "Delete", icon: Trash2, onSelect: del.openDialog, variant: "destructive" },
-                ]}
-              />
+              <ActionsMenu items={menuItems} />
             </div>
           </div>
           {rename.dialogOpen ? (
@@ -55,7 +59,7 @@ export function EntryCard({ entry, dataroomId }: EntryCardProps) {
           </p>
         </CardContent>
       </Card>
-      {isFolder ? (
+      {entry.type === "folder" ? (
         <DeleteFolderDialog
           open={del.dialogOpen}
           onOpenChange={del.setDialogOpen}
@@ -63,12 +67,22 @@ export function EntryCard({ entry, dataroomId }: EntryCardProps) {
           folderName={entry.name}
         />
       ) : (
-        <DeleteFileDialog
-          open={del.dialogOpen}
-          onOpenChange={del.setDialogOpen}
-          fileId={entry.id}
-          fileName={entry.name}
-        />
+        <>
+          <DeleteFileDialog
+            open={del.dialogOpen}
+            onOpenChange={del.setDialogOpen}
+            fileId={entry.id}
+            fileName={entry.name}
+          />
+          <MoveFileDialog
+            open={move.dialogOpen}
+            onOpenChange={move.setDialogOpen}
+            dataroomId={dataroomId}
+            fileId={entry.id}
+            fileName={entry.name}
+            currentFolderId={entry.folderId}
+          />
+        </>
       )}
     </>
   );

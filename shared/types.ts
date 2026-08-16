@@ -138,6 +138,11 @@ export interface ContentsQuery {
   search?: string;
 }
 
+export interface MoveFileInput {
+  /** Destination folder, or null to move to the data room root. */
+  folderId: string | null;
+}
+
 export interface ConfirmUploadInput {
   dataroomId: string;
   folderId: string | null;
