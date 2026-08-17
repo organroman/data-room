@@ -11,7 +11,14 @@ services:
     # preDeployCommand (the usual place for this) isn't available on the free plan — folded
     # into buildCommand instead. `prisma migrate deploy` is idempotent (only applies pending
     # migrations, no-ops if already up to date), so re-running it on every build is harmless.
-    buildCommand: npm install && npm run prisma:migrate:deploy && npm run build:nest
+    #
+    # --include=dev: npm auto-omits devDependencies when NODE_ENV=production is set (which we
+    # set below, for the *runtime*, but Render exports the same env into the build step too) —
+    # typescript/@types/express are devDependencies, and the build needs them. Without this
+    # flag, tsc still runs (something in `dependencies` happens to pull typescript in
+    # transitively), but @types/express — a pure type-only devDependency nothing else
+    # requires — silently gets pruned, producing TS7016 "could not find a declaration file".
+    buildCommand: npm ci --include=dev && npm run prisma:migrate:deploy && npm run build:nest
     startCommand: npm run start:nest
     envVars:
       - key: NODE_ENV
