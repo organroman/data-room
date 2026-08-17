@@ -10,6 +10,7 @@ import { useDataroomContents } from "@/features/dataroom-actions";
 import { NewFolderDialog } from "@/features/folder-actions";
 import { useUploadQueue, UploadProgressList, UploadDropzone } from "@/features/upload-file";
 import { BulkMoveDialog } from "@/features/file-actions";
+import { ActivityPanel } from "@/features/activity";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { Toolbar } from "./Toolbar";
 import { SelectionToolbar } from "./SelectionToolbar";
@@ -31,6 +32,7 @@ export function DataroomPage() {
   const newFolderDialog = useDialog();
   const bulkDeleteDialog = useDialog();
   const bulkMoveDialog = useDialog();
+  const activityPanel = useDialog();
   const {
     items: uploadItems,
     enqueueFiles,
@@ -88,6 +90,7 @@ export function DataroomPage() {
           onViewChange={setView}
           onNewFolder={newFolderDialog.openDialog}
           onUploadFiles={handleUploadFiles}
+          onOpenActivity={activityPanel.openDialog}
         />
       )}
 
@@ -184,6 +187,11 @@ export function DataroomPage() {
               dataroomId={dataroomId!}
               fileIds={selection.fileIds}
               onMoved={selection.clear}
+            />
+            <ActivityPanel
+              open={activityPanel.dialogOpen}
+              onOpenChange={activityPanel.setDialogOpen}
+              dataroomId={dataroomId!}
             />
           </>
         )}

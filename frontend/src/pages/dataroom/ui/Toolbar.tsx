@@ -1,4 +1,4 @@
-import { FolderPlus, LayoutGrid, List } from "lucide-react";
+import { FolderPlus, History, LayoutGrid, List } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { SearchInput } from "@/shared/components/search-input";
 import { UploadButton } from "@/features/upload-file";
@@ -13,6 +13,7 @@ interface ToolbarProps {
   onViewChange: (view: ViewMode) => void;
   onNewFolder: () => void;
   onUploadFiles: (files: FileList) => void;
+  onOpenActivity: () => void;
 }
 
 export function Toolbar({
@@ -22,6 +23,7 @@ export function Toolbar({
   onViewChange,
   onNewFolder,
   onUploadFiles,
+  onOpenActivity,
 }: ToolbarProps) {
   const { isReadOnly } = useBrowseMode();
 
@@ -65,6 +67,9 @@ export function Toolbar({
         </div>
         {!isReadOnly && (
           <>
+            <Button variant="outline" onClick={onOpenActivity}>
+              <History /> Activity
+            </Button>
             <Button variant="outline" onClick={onNewFolder}>
               <FolderPlus /> New Folder
             </Button>

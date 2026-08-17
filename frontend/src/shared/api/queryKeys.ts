@@ -13,4 +13,5 @@ export const queryKeys = {
   starred: ["starred"] as const,
   shares: (resourceType: EntityType, resourceId: string) => ["shares", resourceType, resourceId] as const,
   sharedWithMe: ["shares", "shared-with-me"] as const,
+  activity: (dataroomId: string) => ["datarooms", dataroomId, "activity"] as const,
 };

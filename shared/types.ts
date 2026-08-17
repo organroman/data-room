@@ -208,3 +208,22 @@ export interface BulkMoveResult {
    * hard-reject-on-collision convention rather than silently renaming. */
   conflictCount: number;
 }
+
+/**
+ * One row in the owner-facing activity feed (CLAUDE.md §6b) — a single AccessLog entry,
+ * enriched with the viewer's identity and the current name of whatever was viewed. Scoped to
+ * one dataroom and covering all three resource types (the dataroom itself, its folders, its
+ * files) rather than one endpoint per resource, since "who's been looking at my data room" is
+ * the question an owner actually has.
+ */
+export interface ActivityEntry {
+  id: string;
+  resourceType: EntityType;
+  resourceId: string;
+  /** null if the viewed resource has since been permanently purged. */
+  resourceName: string | null;
+  /** null = anonymous, viewed via a public link rather than a permissioned per-user grant. */
+  viewer: { name: string; email: string } | null;
+  shareId: string;
+  createdAt: string;
+}

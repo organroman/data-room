@@ -12,6 +12,7 @@ import { FilesModule } from "./files/files.module.js";
 import { StarredModule } from "./starred/starred.module.js";
 import { TrashModule } from "./trash/trash.module.js";
 import { SharingModule } from "./sharing/sharing.module.js";
+import { ActivityModule } from "./activity/activity.module.js";
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { SharingModule } from "./sharing/sharing.module.js";
     FilesModule,
     StarredModule,
     TrashModule,
+    ActivityModule,
   ],
   providers: [
     {
