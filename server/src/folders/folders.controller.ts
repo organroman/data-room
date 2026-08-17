@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, HttpCode, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post } from "@nestjs/common";
 import { Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { FoldersService } from "./folders.service.js";
 import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe.js";
@@ -24,6 +24,11 @@ export class FoldersController {
     @Body(new ZodValidationPipe(nameSchema, "Invalid request body")) body: { name: string },
   ) {
     return this.foldersService.renameFolder(session.user.id, id, body.name);
+  }
+
+  @Get(":id/subtree-stats")
+  getSubtreeStats(@Session() session: UserSession, @Param("id") id: string) {
+    return this.foldersService.getSubtreeStats(session.user.id, id);
   }
 
   @Delete(":id")

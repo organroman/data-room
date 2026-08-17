@@ -335,7 +335,7 @@ Update this checklist as work lands. Mark phases done only once their own verifi
 - [ ] Phase 5: Frontend feature UI — being done in chunks (user's request), tracked here as each lands:
   - [x] Move file — `PATCH /files/:id/move` (single-query auth+move, see Phase 5 notes below), `FolderTreePicker` + `MoveFileDialog` (inline 409 conflict, not a toast — move is a single watched action like rename, not a batch op like upload), "Move to…" in the file actions menu. 4 new backend tests. `menuItems` (identical between EntryRow/EntryCard) and `useEntryActions.ts` itself were both moved to better locations after the fact — see notes.
   - [x] Drag-and-drop upload — `UploadDropzone` (features/upload-file/ui), wraps the whole content area in DataroomPage, calls the same `enqueueFiles` the button uses (one shared queue/progress UI). Pure frontend, zero backend change.
-  - [ ] Delete-warning stats
+  - [x] Delete-warning stats — `GET /folders/:id/subtree-stats` (root excluded from the folder count, already-deleted descendants excluded), `DeleteFolderDialog` fetches it while open and shows "this will also move N folders and M files" inline. 4 new backend tests.
   - [ ] "Shared with me" page
   - [ ] Share dialog + read-only shared viewer + branded SharedViewLayout
   - [ ] Bulk select + bulk delete/move

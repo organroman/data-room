@@ -1,5 +1,5 @@
 import { api } from "@/shared/api/client";
-import type { Folder } from "@shared/types";
+import type { Folder, FolderSubtreeStats } from "@shared/types";
 
 export function createFolder(dataroomId: string, parentFolderId: string | null, name: string) {
   return api.post<Folder>("/folders", { dataroomId, parentFolderId, name });
@@ -15,4 +15,8 @@ export function deleteFolder(folderId: string) {
 
 export function restoreFolder(folderId: string) {
   return api.post<void>(`/folders/${folderId}/restore`);
+}
+
+export function getSubtreeStats(folderId: string) {
+  return api.get<FolderSubtreeStats>(`/folders/${folderId}/subtree-stats`);
 }

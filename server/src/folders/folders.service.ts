@@ -5,7 +5,7 @@ import { BlobService } from "../blob/blob.service.js";
 import { ApiException } from "../common/exceptions/api.exception.js";
 import { isUniqueViolation } from "../common/db-errors.js";
 import { serializeFolderPlain } from "../common/serialize.js";
-import type { Folder } from "../../../shared/types.js";
+import type { Folder, FolderSubtreeStats } from "../../../shared/types.js";
 
 const NAME_CONFLICT_MESSAGE = "An item with this name already exists in this location.";
 
@@ -97,6 +97,31 @@ export class FoldersService {
       }
       throw err;
     }
+  }
+
+  /**
+   * Counts of *live* descendants — folders and files that would be swept into Trash by
+   * deleting this folder — for the delete-warning dialog ("this will also move N folders and
+   * M files"). The root folder itself is excluded from folderCount (it's already named in the
+   * dialog's own title); already-deleted descendants aren't counted since this soft-delete
+   * wouldn't additionally affect them from the user's perspective.
+   */
+  async getSubtreeStats(userId: string, folderId: string): Promise<FolderSubtreeStats> {
+    const owned = await this.prisma.folder.findFirst({
+      where: { id: folderId, deletedAt: null, dataroom: { ownerId: userId } },
+      select: { id: true },
+    });
+    if (!owned) throw ApiException.notFound("Folder");
+
+    const descendantIds = await this.getDescendantFolderIds(folderId);
+    const nestedFolderIds = descendantIds.filter((id) => id !== folderId);
+
+    const [folderCount, fileCount] = await Promise.all([
+      this.prisma.folder.count({ where: { id: { in: nestedFolderIds }, deletedAt: null } }),
+      this.prisma.file.count({ where: { folderId: { in: descendantIds }, deletedAt: null } }),
+    ]);
+
+    return { folderCount, fileCount };
   }
 
   async deleteFolder(userId: string, folderId: string): Promise<void> {

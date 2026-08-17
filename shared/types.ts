@@ -23,6 +23,12 @@ export interface Folder {
   updatedAt: string;
 }
 
+/** Live descendants of a folder — powers the "this will also delete N folders and M files" warning. */
+export interface FolderSubtreeStats {
+  folderCount: number;
+  fileCount: number;
+}
+
 export interface FolderEntry extends Folder {
   type: "folder";
   starred: boolean;
