@@ -7,6 +7,7 @@ import { formatBytes, formatDateTime } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { DeleteFolderDialog } from "@/features/folder-actions";
 import { DeleteFileDialog, MoveFileDialog } from "@/features/file-actions";
+import { ShareDialog } from "@/features/share-actions";
 import { useEntryActions } from "../model/useEntryActions";
 import type { BrowserEntry } from "@shared/types";
 
@@ -23,6 +24,7 @@ export function EntryRow({ entry, dataroomId }: EntryRowProps) {
     rename,
     del,
     move,
+    share,
     renameError,
     renamePending,
     handleRenameSubmit,
@@ -85,6 +87,13 @@ export function EntryRow({ entry, dataroomId }: EntryRowProps) {
           />
         </>
       )}
+      <ShareDialog
+        open={share.dialogOpen}
+        onOpenChange={share.setDialogOpen}
+        resourceType={entry.type}
+        resourceId={entry.id}
+        resourceName={entry.name}
+      />
     </TableRow>
   );
 }

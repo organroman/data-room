@@ -336,8 +336,9 @@ Update this checklist as work lands. Mark phases done only once their own verifi
   - [x] Move file — `PATCH /files/:id/move` (single-query auth+move, see Phase 5 notes below), `FolderTreePicker` + `MoveFileDialog` (inline 409 conflict, not a toast — move is a single watched action like rename, not a batch op like upload), "Move to…" in the file actions menu. 4 new backend tests. `menuItems` (identical between EntryRow/EntryCard) and `useEntryActions.ts` itself were both moved to better locations after the fact — see notes.
   - [x] Drag-and-drop upload — `UploadDropzone` (features/upload-file/ui), wraps the whole content area in DataroomPage, calls the same `enqueueFiles` the button uses (one shared queue/progress UI). Pure frontend, zero backend change.
   - [x] Delete-warning stats — `GET /folders/:id/subtree-stats` (root excluded from the folder count, already-deleted descendants excluded), `DeleteFolderDialog` fetches it while open and shows "this will also move N folders and M files" inline. 4 new backend tests.
-  - [ ] "Shared with me" page
-  - [ ] Share dialog + read-only shared viewer + branded SharedViewLayout
+  - [ ] "Shared with me" page — backend endpoint already exists (Phase 3), frontend not built yet
+  - [x] Share dialog — `features/share-actions/` slice (public link generate/copy/revoke, invite-by-email with per-grantee revoke), wired into `useEntryActions` menuItems (dataroom/folder/file all shareable) and `DataroomCard`'s menu.
+  - [ ] Read-only shared viewer mode (`isOwner`-based UI gating on existing routes) + unguarded `shared/:token` route + branded `SharedViewLayout` — not started; needed before "Shared with me" entries are actually useful to click through to
   - [ ] Bulk select + bulk delete/move
   - [ ] Owner-facing activity panel
 - [ ] Phase 6: Deployment (Railway-or-Render backend + Postgres, Vercel frontend config, Google OAuth redirect URIs per environment)

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { ExternalLink, Folder, Pencil, Star, Trash2 } from "lucide-react";
+import { ExternalLink, Folder, Pencil, Share2, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
@@ -12,12 +12,14 @@ import {
   RenameDataroomDialog,
   DeleteDataroomDialog,
 } from "@/features/dataroom-actions";
+import { ShareDialog } from "@/features/share-actions";
 import { useStarEntity, useUnstarEntity } from "@/features/star-item";
 import type { DataroomSummary } from "@shared/types";
 
 export function DataroomCard({ dataroom }: { dataroom: DataroomSummary }) {
   const rename = useDialog();
   const del = useDialog();
+  const share = useDialog();
   const { mutate: star } = useStarEntity();
   const { mutate: unstar } = useUnstarEntity();
   const navigate = useNavigate();
@@ -79,6 +81,7 @@ export function DataroomCard({ dataroom }: { dataroom: DataroomSummary }) {
                   onSelect: () => navigate(`/datarooms/${dataroom.id}`),
                 },
                 { label: "Rename", icon: Pencil, onSelect: rename.openDialog },
+                { label: "Share", icon: Share2, onSelect: share.openDialog },
                 {
                   label: "Delete",
                   icon: Trash2,
@@ -101,6 +104,13 @@ export function DataroomCard({ dataroom }: { dataroom: DataroomSummary }) {
         onOpenChange={del.setDialogOpen}
         dataroomId={dataroom.id}
         dataroomName={dataroom.name}
+      />
+      <ShareDialog
+        open={share.dialogOpen}
+        onOpenChange={share.setDialogOpen}
+        resourceType="dataroom"
+        resourceId={dataroom.id}
+        resourceName={dataroom.name}
       />
     </>
   );

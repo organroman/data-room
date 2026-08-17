@@ -7,6 +7,7 @@ import { formatBytes } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { DeleteFolderDialog } from "@/features/folder-actions";
 import { DeleteFileDialog, MoveFileDialog } from "@/features/file-actions";
+import { ShareDialog } from "@/features/share-actions";
 import { useEntryActions } from "../model/useEntryActions";
 import type { BrowserEntry } from "@shared/types";
 
@@ -23,6 +24,7 @@ export function EntryCard({ entry, dataroomId }: EntryCardProps) {
     rename,
     del,
     move,
+    share,
     renameError,
     renamePending,
     handleRenameSubmit,
@@ -84,6 +86,13 @@ export function EntryCard({ entry, dataroomId }: EntryCardProps) {
           />
         </>
       )}
+      <ShareDialog
+        open={share.dialogOpen}
+        onOpenChange={share.setDialogOpen}
+        resourceType={entry.type}
+        resourceId={entry.id}
+        resourceName={entry.name}
+      />
     </>
   );
 }

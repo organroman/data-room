@@ -1,3 +1,5 @@
+import type { EntityType } from "@shared/types";
+
 export const queryKeys = {
   // Invalidating this prefix refetches both the dashboard list and every
   // dataroom's contents view — TanStack Query matches by key prefix, and
@@ -7,4 +9,6 @@ export const queryKeys = {
     ["datarooms", dataroomId, "contents", folderId ?? "root", search ?? ""] as const,
   trash: ["trash"] as const,
   starred: ["starred"] as const,
+  shares: (resourceType: EntityType, resourceId: string) => ["shares", resourceType, resourceId] as const,
+  sharedWithMe: ["shares", "shared-with-me"] as const,
 };

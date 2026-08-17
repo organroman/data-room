@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Folder, FileText, Star, Pencil, FolderInput, Trash2 } from "lucide-react";
+import { Folder, FileText, Star, Pencil, FolderInput, Share2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { ApiClientError } from "@/shared/api/client";
 import { useDialog } from "@/shared/hooks/use-dialog";
@@ -13,6 +13,7 @@ export function useEntryActions(entry: BrowserEntry, dataroomId: string) {
   const rename = useDialog();
   const del = useDialog();
   const move = useDialog();
+  const share = useDialog();
   const [renameError, setRenameError] = useState<string>();
   const { mutate: star } = useStarEntity();
   const { mutate: unstar } = useUnstarEntity();
@@ -59,6 +60,7 @@ export function useEntryActions(entry: BrowserEntry, dataroomId: string) {
   const menuItems: ActionsMenuItem[] = [
     { label: entry.starred ? "Unstar" : "Star", icon: Star, onSelect: toggleStar },
     { label: "Rename", icon: Pencil, onSelect: rename.openDialog },
+    { label: "Share", icon: Share2, onSelect: share.openDialog },
     ...(isFolder ? [] : [{ label: "Move to…", icon: FolderInput, onSelect: move.openDialog }]),
     { label: "Delete", icon: Trash2, onSelect: del.openDialog, variant: "destructive" as const },
   ];
@@ -70,6 +72,7 @@ export function useEntryActions(entry: BrowserEntry, dataroomId: string) {
     rename,
     del,
     move,
+    share,
     renameError,
     renamePending,
     handleRenameSubmit,
