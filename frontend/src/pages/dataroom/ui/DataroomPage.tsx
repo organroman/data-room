@@ -7,7 +7,7 @@ import { useDialog } from "@/shared/hooks/use-dialog";
 import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
 import { useDataroomContents } from "@/features/dataroom-actions";
 import { NewFolderDialog } from "@/features/folder-actions";
-import { useUploadQueue, UploadProgressList } from "@/features/upload-file";
+import { useUploadQueue, UploadProgressList, UploadDropzone } from "@/features/upload-file";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { Toolbar } from "./Toolbar";
 import { EntryTable } from "./EntryTable";
@@ -59,7 +59,7 @@ export function DataroomPage() {
       {isPreviewingFile ? (
         <Outlet />
       ) : (
-        <>
+        <UploadDropzone onFilesDropped={handleUploadFiles} className="flex flex-1 flex-col gap-4">
           <Toolbar
             search={search}
             onSearchChange={setSearch}
@@ -117,7 +117,7 @@ export function DataroomPage() {
             view === "grid" && (
               <EntryGrid entries={data.entries} dataroomId={dataroomId!} />
             )}
-        </>
+        </UploadDropzone>
       )}
 
       <NewFolderDialog
