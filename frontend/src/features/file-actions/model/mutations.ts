@@ -30,6 +30,25 @@ export function useDeleteFile() {
   });
 }
 
+export function useBulkDeleteFiles() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) => api.bulkDeleteFiles(ids),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.datarooms });
+      qc.invalidateQueries({ queryKey: queryKeys.trash });
+    },
+  });
+}
+
+export function useBulkMoveFiles() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ids, folderId }: { ids: string[]; folderId: string | null }) => api.bulkMoveFiles(ids, folderId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.datarooms }),
+  });
+}
+
 export function useRestoreFile() {
   const qc = useQueryClient();
   return useMutation({

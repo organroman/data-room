@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useMatch, useParams } from "react-router-dom";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { ErrorMessage } from "@/shared/components/error-message";
@@ -9,11 +9,15 @@ import { BrowseContextProvider, buildSharedPath, defaultBuildPath } from "@/shar
 import { useDataroomContents } from "@/features/dataroom-actions";
 import { NewFolderDialog } from "@/features/folder-actions";
 import { useUploadQueue, UploadProgressList, UploadDropzone } from "@/features/upload-file";
+import { BulkMoveDialog } from "@/features/file-actions";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { Toolbar } from "./Toolbar";
+import { SelectionToolbar } from "./SelectionToolbar";
+import { BulkDeleteDialog } from "./BulkDeleteDialog";
 import { EntryTable } from "./EntryTable";
 import { EntryGrid } from "./EntryGrid";
 import { EmptyFolder } from "./EmptyFolder";
+import { useBulkSelection } from "../model/useBulkSelection";
 import type { ViewMode } from "./types";
 
 export function DataroomPage() {
@@ -25,6 +29,8 @@ export function DataroomPage() {
   const [search, setSearch] = useState("");
   const [view, setView] = useState<ViewMode>("list");
   const newFolderDialog = useDialog();
+  const bulkDeleteDialog = useDialog();
+  const bulkMoveDialog = useDialog();
   const {
     items: uploadItems,
     enqueueFiles,
@@ -53,20 +59,37 @@ export function DataroomPage() {
   const isReadOnly = data ? !data.isOwner : true;
   const buildPath = token ? buildSharedPath(token) : defaultBuildPath;
 
+  const selection = useBulkSelection(data?.entries ?? []);
+  // Selection is scoped to "what's on screen right now" — stale ids would otherwise survive
+  // a folder navigation or a new search and silently get bulk-deleted/moved from underneath.
+  useEffect(() => {
+    selection.clear();
+  }, [dataroomId, folderId, debouncedSearch, selection.clear]);
+
   function handleUploadFiles(files: FileList) {
     enqueueFiles(dataroomId!, folderId ?? null, files);
   }
 
   const content = (
     <>
-      <Toolbar
-        search={search}
-        onSearchChange={setSearch}
-        view={view}
-        onViewChange={setView}
-        onNewFolder={newFolderDialog.openDialog}
-        onUploadFiles={handleUploadFiles}
-      />
+      {selection.selectedCount > 0 ? (
+        <SelectionToolbar
+          selectedCount={selection.selectedCount}
+          canMove={selection.folderIds.length === 0 && selection.fileIds.length > 0}
+          onMove={bulkMoveDialog.openDialog}
+          onDelete={bulkDeleteDialog.openDialog}
+          onClear={selection.clear}
+        />
+      ) : (
+        <Toolbar
+          search={search}
+          onSearchChange={setSearch}
+          view={view}
+          onViewChange={setView}
+          onNewFolder={newFolderDialog.openDialog}
+          onUploadFiles={handleUploadFiles}
+        />
+      )}
 
       {isLoading && (
         <div className="flex w-full flex-col gap-2">
@@ -106,7 +129,7 @@ export function DataroomPage() {
         data &&
         data.entries.length > 0 &&
         view === "list" && (
-          <EntryTable entries={data.entries} dataroomId={dataroomId!} />
+          <EntryTable entries={data.entries} dataroomId={dataroomId!} selection={selection} />
         )}
 
       {!isLoading &&
@@ -114,7 +137,7 @@ export function DataroomPage() {
         data &&
         data.entries.length > 0 &&
         view === "grid" && (
-          <EntryGrid entries={data.entries} dataroomId={dataroomId!} />
+          <EntryGrid entries={data.entries} dataroomId={dataroomId!} selection={selection} />
         )}
     </>
   );
@@ -141,12 +164,28 @@ export function DataroomPage() {
         )}
 
         {!isReadOnly && (
-          <NewFolderDialog
-            open={newFolderDialog.dialogOpen}
-            onOpenChange={newFolderDialog.setDialogOpen}
-            dataroomId={dataroomId!}
-            parentFolderId={folderId ?? null}
-          />
+          <>
+            <NewFolderDialog
+              open={newFolderDialog.dialogOpen}
+              onOpenChange={newFolderDialog.setDialogOpen}
+              dataroomId={dataroomId!}
+              parentFolderId={folderId ?? null}
+            />
+            <BulkDeleteDialog
+              open={bulkDeleteDialog.dialogOpen}
+              onOpenChange={bulkDeleteDialog.setDialogOpen}
+              folderIds={selection.folderIds}
+              fileIds={selection.fileIds}
+              onDeleted={selection.clear}
+            />
+            <BulkMoveDialog
+              open={bulkMoveDialog.dialogOpen}
+              onOpenChange={bulkMoveDialog.setDialogOpen}
+              dataroomId={dataroomId!}
+              fileIds={selection.fileIds}
+              onMoved={selection.clear}
+            />
+          </>
         )}
 
         <UploadProgressList items={uploadItems} onDismiss={removeUploadItem} />

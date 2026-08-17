@@ -2,8 +2,8 @@ import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post } from "@ne
 import { Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { FoldersService } from "./folders.service.js";
 import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe.js";
-import { createFolderSchema, nameSchema } from "../../../shared/validation.js";
-import type { CreateFolderInput } from "../../../shared/types.js";
+import { createFolderSchema, nameSchema, bulkIdsSchema } from "../../../shared/validation.js";
+import type { BulkIdsInput, CreateFolderInput } from "../../../shared/types.js";
 
 @Controller("folders")
 export class FoldersController {
@@ -15,6 +15,18 @@ export class FoldersController {
     @Body(new ZodValidationPipe(createFolderSchema, "Invalid request body")) body: CreateFolderInput,
   ) {
     return this.foldersService.createFolder(session.user.id, body.dataroomId, body.parentFolderId, body.name);
+  }
+
+  // No bare POST ":id" route exists on this controller, so this literal path can't be
+  // shadowed by a wildcard regardless of declaration order — unlike files.controller.ts's
+  // bulk-move, which does need to come before its PATCH ":id".
+  @Post("bulk-delete")
+  @HttpCode(204)
+  async bulkDeleteFolders(
+    @Session() session: UserSession,
+    @Body(new ZodValidationPipe(bulkIdsSchema, "Invalid request body")) body: BulkIdsInput,
+  ) {
+    await this.foldersService.bulkSoftDelete(session.user.id, body.ids);
   }
 
   @Patch(":id")

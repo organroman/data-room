@@ -8,10 +8,13 @@ import type {
   CreateShareInput,
   SharesQuery,
   MoveFileInput,
+  BulkIdsInput,
+  BulkMoveInput,
 } from "./types.js";
 
 const uuidSchema = z.string().uuid();
 export const MAX_FILE_SIZE = 100 * 1024 * 1024;
+export const MAX_BULK_ITEMS = 200;
 
 // Used for every create/rename form across dataroom, folder, and file — both as
 // the backend's request-body validator and, via zodResolver, as the frontend's
@@ -33,6 +36,15 @@ export const contentsQuerySchema = z.object({
 export const moveFileSchema = z.object({
   folderId: uuidSchema.nullable(),
 }) satisfies z.ZodType<MoveFileInput>;
+
+export const bulkIdsSchema = z.object({
+  ids: z.array(uuidSchema).min(1).max(MAX_BULK_ITEMS),
+}) satisfies z.ZodType<BulkIdsInput>;
+
+export const bulkMoveSchema = z.object({
+  ids: z.array(uuidSchema).min(1).max(MAX_BULK_ITEMS),
+  folderId: uuidSchema.nullable(),
+}) satisfies z.ZodType<BulkMoveInput>;
 
 export const confirmUploadSchema = nameSchema.extend({
   dataroomId: uuidSchema,

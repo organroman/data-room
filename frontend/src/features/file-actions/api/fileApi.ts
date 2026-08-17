@@ -1,5 +1,5 @@
 import { api, toQueryString } from "@/shared/api/client";
-import type { FileEntry, FolderContents, FolderEntry } from "@shared/types";
+import type { BulkMoveResult, FileEntry, FolderContents, FolderEntry } from "@shared/types";
 
 export function renameFile(fileId: string, name: string) {
   return api.patch<FileEntry>(`/files/${fileId}`, { name });
@@ -24,6 +24,14 @@ export async function listSubfolders(dataroomId: string, folderId?: string): Pro
 
 export function deleteFile(fileId: string) {
   return api.delete<void>(`/files/${fileId}`);
+}
+
+export function bulkDeleteFiles(ids: string[]) {
+  return api.post<void>("/files/bulk-delete", { ids });
+}
+
+export function bulkMoveFiles(ids: string[], folderId: string | null) {
+  return api.patch<BulkMoveResult>("/files/bulk-move", { ids, folderId });
 }
 
 export function restoreFile(fileId: string) {

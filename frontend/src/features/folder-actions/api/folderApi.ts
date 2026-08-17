@@ -13,6 +13,10 @@ export function deleteFolder(folderId: string) {
   return api.delete<void>(`/folders/${folderId}`);
 }
 
+export function bulkDeleteFolders(ids: string[]) {
+  return api.post<void>("/folders/bulk-delete", { ids });
+}
+
 export function restoreFolder(folderId: string) {
   return api.post<void>(`/folders/${folderId}/restore`);
 }

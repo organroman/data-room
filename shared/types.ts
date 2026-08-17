@@ -192,3 +192,19 @@ export interface SharesQuery {
   resourceType: EntityType;
   resourceId: string;
 }
+
+export interface BulkIdsInput {
+  ids: string[];
+}
+
+export interface BulkMoveInput {
+  ids: string[];
+  folderId: string | null;
+}
+
+export interface BulkMoveResult {
+  movedCount: number;
+  /** Skipped due to a name collision in the destination — matches single-file move's
+   * hard-reject-on-collision convention rather than silently renaming. */
+  conflictCount: number;
+}

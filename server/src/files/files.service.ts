@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import type { Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service.js";
 import { BlobService } from "../blob/blob.service.js";
@@ -7,7 +7,7 @@ import { SharesAccessService } from "../sharing/shares-access.service.js";
 import { ApiException } from "../common/exceptions/api.exception.js";
 import { isUniqueViolation, isRecordNotFound } from "../common/db-errors.js";
 import { serializeFileEntry } from "../common/serialize.js";
-import type { FileEntry } from "../../../shared/types.js";
+import type { BulkMoveResult, FileEntry } from "../../../shared/types.js";
 
 const NAME_CONFLICT_MESSAGE = "An item with this name already exists in this location.";
 const MAX_NAME_RESOLUTION_ATTEMPTS = 5;
@@ -192,6 +192,48 @@ export class FilesService {
       data: { deletedAt: now, updatedAt: now },
     });
     if (result.count === 0) throw ApiException.notFound("File");
+  }
+
+  /**
+   * Deletes multiple files in one request instead of N sequential ones from the client
+   * (bulk-select) — unlike bulkSoftDelete on folders, this is naturally a single updateMany,
+   * no per-item transaction needed. Ids that don't exist or aren't owned are silently excluded.
+   */
+  async bulkDelete(userId: string, fileIds: string[]): Promise<void> {
+    const now = new Date();
+    await this.prisma.file.updateMany({
+      where: { id: { in: fileIds }, deletedAt: null, dataroom: { ownerId: userId } },
+      data: { deletedAt: now, updatedAt: now },
+    });
+  }
+
+  /**
+   * Moves multiple files to the same destination in one request. Runs sequentially through
+   * the existing single-file moveFile (already a single optimized query per file — see its
+   * own doc comment) rather than a batch updateMany, since each file needs its own
+   * collision check against the destination — best-effort, not all-or-nothing: a file whose
+   * name collides in the destination is skipped (counted, not silently renamed — matches
+   * single-file move's hard-reject convention) rather than blocking the rest of the batch.
+   */
+  async bulkMove(userId: string, fileIds: string[], targetFolderId: string | null): Promise<BulkMoveResult> {
+    let movedCount = 0;
+    let conflictCount = 0;
+    for (const fileId of fileIds) {
+      try {
+        await this.moveFile(userId, fileId, targetFolderId);
+        movedCount++;
+      } catch (err) {
+        if (err instanceof ApiException && err.getStatus() === HttpStatus.CONFLICT) {
+          conflictCount++;
+          continue;
+        }
+        if (err instanceof ApiException && err.getStatus() === HttpStatus.NOT_FOUND) {
+          continue; // not owned / doesn't exist — silently skip, same as bulkDelete
+        }
+        throw err;
+      }
+    }
+    return { movedCount, conflictCount };
   }
 
   async restoreFile(userId: string, fileId: string): Promise<void> {

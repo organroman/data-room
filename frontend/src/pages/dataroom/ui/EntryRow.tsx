@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import { Star } from "lucide-react";
 import { TableCell, TableRow } from "@/shared/ui/table";
+import { Checkbox } from "@/shared/ui/checkbox";
 import { InlineRenameField } from "@/shared/components/inline-rename-field";
 import { ActionsMenu } from "@/shared/components/actions-menu";
 import { formatBytes, formatDateTime } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
+import { useBrowseMode } from "@/shared/lib/browse-context";
 import { DeleteFolderDialog } from "@/features/folder-actions";
 import { DeleteFileDialog, MoveFileDialog } from "@/features/file-actions";
 import { ShareDialog } from "@/features/share-actions";
@@ -14,9 +16,12 @@ import type { BrowserEntry } from "@shared/types";
 interface EntryRowProps {
   entry: BrowserEntry;
   dataroomId: string;
+  isSelected: boolean;
+  onToggleSelect: () => void;
 }
 
-export function EntryRow({ entry, dataroomId }: EntryRowProps) {
+export function EntryRow({ entry, dataroomId, isSelected, onToggleSelect }: EntryRowProps) {
+  const { isReadOnly } = useBrowseMode();
   const {
     isFolder,
     icon: Icon,
@@ -32,7 +37,12 @@ export function EntryRow({ entry, dataroomId }: EntryRowProps) {
   } = useEntryActions(entry, dataroomId);
 
   return (
-    <TableRow>
+    <TableRow data-state={isSelected ? "selected" : undefined}>
+      {!isReadOnly && (
+        <TableCell>
+          <Checkbox checked={isSelected} onCheckedChange={onToggleSelect} aria-label={`Select ${entry.name}`} />
+        </TableCell>
+      )}
       <TableCell>
         <div className="flex min-w-0 items-center gap-2">
           <Icon className={cn("size-4 shrink-0", isFolder ? "text-muted-foreground" : "text-red-500")} />

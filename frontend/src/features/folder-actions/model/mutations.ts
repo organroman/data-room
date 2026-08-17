@@ -37,6 +37,17 @@ export function useDeleteFolder() {
   });
 }
 
+export function useBulkDeleteFolders() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) => api.bulkDeleteFolders(ids),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.datarooms });
+      qc.invalidateQueries({ queryKey: queryKeys.trash });
+    },
+  });
+}
+
 export function useRestoreFolder() {
   const qc = useQueryClient();
   return useMutation({

@@ -1,6 +1,13 @@
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { ExternalLink, Folder, Pencil, Share2, Star, Trash2 } from "lucide-react";
+import {
+  ExternalLink,
+  Folder,
+  Pencil,
+  Share2,
+  Star,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
@@ -37,17 +44,14 @@ export function DataroomCard({ dataroom }: { dataroom: DataroomSummary }) {
   return (
     <>
       <Card className="group relative transition-shadow hover:shadow-md">
-        <Link
-          to={`/datarooms/${dataroom.id}`}
-          className="absolute inset-0"
-          aria-label={dataroom.name}
-        />
         <CardHeader className="flex-row items-start justify-between gap-2 space-y-0 relative">
           <div className="flex min-w-0 flex-col gap-4">
-            <Folder className="size-10 shrink-0 text-primary" />
-            <span className="truncate font-medium text-lg">
-              {dataroom.name}
-            </span>
+            <Link to={`/datarooms/${dataroom.id}`} aria-label={dataroom.name}>
+              <Folder className="size-10 shrink-0 text-primary" />
+              <span className="truncate font-medium text-lg">
+                {dataroom.name}
+              </span>
+            </Link>
           </div>
           <Button
             variant="ghost"

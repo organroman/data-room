@@ -17,8 +17,14 @@ import { OptionalAuth, Session, type UserSession } from "@thallesp/nestjs-better
 import { FilesService } from "./files.service.js";
 import { BlobService } from "../blob/blob.service.js";
 import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe.js";
-import { nameSchema, confirmUploadSchema, moveFileSchema } from "../../../shared/validation.js";
-import type { ConfirmUploadInput, MoveFileInput } from "../../../shared/types.js";
+import {
+  nameSchema,
+  confirmUploadSchema,
+  moveFileSchema,
+  bulkIdsSchema,
+  bulkMoveSchema,
+} from "../../../shared/validation.js";
+import type { BulkIdsInput, BulkMoveInput, ConfirmUploadInput, MoveFileInput } from "../../../shared/types.js";
 
 @Controller("files")
 export class FilesController {
@@ -42,6 +48,26 @@ export class FilesController {
     body: ConfirmUploadInput,
   ) {
     return this.filesService.confirmFileUpload(session.user.id, body);
+  }
+
+  @Post("bulk-delete")
+  @HttpCode(204)
+  async bulkDeleteFiles(
+    @Session() session: UserSession,
+    @Body(new ZodValidationPipe(bulkIdsSchema, "Invalid request body")) body: BulkIdsInput,
+  ) {
+    await this.filesService.bulkDelete(session.user.id, body.ids);
+  }
+
+  // Must be declared before PATCH ":id" below — Nest/Express matches routes in declaration
+  // order, not by specificity, so a wildcard ":id" registered first would swallow the
+  // literal "bulk-move" path (both are a single segment under /files).
+  @Patch("bulk-move")
+  bulkMoveFiles(
+    @Session() session: UserSession,
+    @Body(new ZodValidationPipe(bulkMoveSchema, "Invalid request body")) body: BulkMoveInput,
+  ) {
+    return this.filesService.bulkMove(session.user.id, body.ids, body.folderId);
   }
 
   @Patch(":id")

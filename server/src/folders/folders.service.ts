@@ -133,6 +133,22 @@ export class FoldersService {
     await this.softDeleteFolder(folderId);
   }
 
+  /**
+   * Deletes multiple folders in one request instead of N sequential ones from the client
+   * (bulk-select). Each folder's own cascade stays independently atomic via softDeleteFolder's
+   * existing per-folder transaction — these aren't joined into one giant cross-subtree
+   * transaction, since the selected folders are logically independent of each other. Ids that
+   * don't exist or aren't owned by this user are silently excluded rather than failing the
+   * whole batch, matching bulkDelete's behavior in files.service.ts.
+   */
+  async bulkSoftDelete(userId: string, folderIds: string[]): Promise<void> {
+    const owned = await this.prisma.folder.findMany({
+      where: { id: { in: folderIds }, deletedAt: null, dataroom: { ownerId: userId } },
+      select: { id: true },
+    });
+    await Promise.all(owned.map((f) => this.softDeleteFolder(f.id)));
+  }
+
   async softDeleteFolder(folderId: string): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       const ids = await this.getDescendantFolderIds(folderId, tx);
