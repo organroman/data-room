@@ -8,11 +8,11 @@ services:
     type: web
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build:nest
+    # preDeployCommand (the usual place for this) isn't available on the free plan — folded
+    # into buildCommand instead. `prisma migrate deploy` is idempotent (only applies pending
+    # migrations, no-ops if already up to date), so re-running it on every build is harmless.
+    buildCommand: npm install && npm run prisma:migrate:deploy && npm run build:nest
     startCommand: npm run start:nest
-    # Runs once per deploy, after build and before the new version goes live — applies any
-    # pending Prisma migrations (server/prisma/migrations) without generating new ones.
-    preDeployCommand: npm run prisma:migrate:deploy
     envVars:
       - key: NODE_ENV
         value: production
