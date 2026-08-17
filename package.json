@@ -20,6 +20,7 @@
     "typecheck:nest": "tsc -p server/tsconfig.json --noEmit",
     "prisma:generate": "prisma generate --schema server/prisma/schema.prisma",
     "prisma:migrate": "prisma migrate dev --schema server/prisma/schema.prisma",
+    "prisma:migrate:deploy": "prisma migrate deploy --schema server/prisma/schema.prisma",
     "prisma:studio": "prisma studio --schema server/prisma/schema.prisma",
     "postinstall": "npm run prisma:generate"
   },

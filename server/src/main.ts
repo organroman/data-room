@@ -20,7 +20,9 @@ async function bootstrap() {
   // correctly since the two never overlap.
   app.setGlobalPrefix("api");
 
-  const port = Number(process.env.NEST_PORT ?? 3001);
+  // Render (and most PaaS hosts) assign the actual listening port via PORT at runtime and
+  // expect the app to bind to it — NEST_PORT is only the local-dev override (see .env.example).
+  const port = Number(process.env.PORT ?? process.env.NEST_PORT ?? 3001);
   await app.listen(port);
 }
 

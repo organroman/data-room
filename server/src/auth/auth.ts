@@ -18,7 +18,13 @@ const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
 export const auth = betterAuth({
   basePath: "/api/auth",
-  baseURL: process.env.BETTER_AUTH_URL ?? `http://localhost:${process.env.NEST_PORT ?? 3001}`,
+  // RENDER_EXTERNAL_URL is auto-injected by Render at runtime (the service's own
+  // https://<name>.onrender.com URL) — falls back to it so BETTER_AUTH_URL doesn't need to be
+  // hand-set (and re-guessed if Render appends a suffix to a taken service name).
+  baseURL:
+    process.env.BETTER_AUTH_URL ??
+    process.env.RENDER_EXTERNAL_URL ??
+    `http://localhost:${process.env.NEST_PORT ?? 3001}`,
   secret: process.env.BETTER_AUTH_SECRET,
   database: prismaAdapter(prisma, { provider: "postgresql" }),
   trustedOrigins: [frontendOrigin],
