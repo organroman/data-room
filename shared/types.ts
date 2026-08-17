@@ -108,6 +108,17 @@ export interface ShareSummary {
   grantees: ShareGrantee[];
 }
 
+/** What a public share token points to — resolved once by the anonymous /shared/:token viewer to learn where to navigate. */
+export interface ResolvedShare {
+  resourceType: EntityType;
+  dataroomId: string;
+  folderId: string | null;
+  fileId: string | null;
+  resourceName: string;
+  ownerName: string;
+  ownerEmail: string;
+}
+
 export interface SharedWithMeEntry {
   shareId: string;
   entityType: EntityType;

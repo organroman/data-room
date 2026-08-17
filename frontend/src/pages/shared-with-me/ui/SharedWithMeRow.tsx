@@ -1,23 +1,10 @@
 import { Link } from "react-router-dom";
-import { Star } from "lucide-react";
-import { toast } from "sonner";
 import { TableCell, TableRow } from "@/shared/ui/table";
-import { Button } from "@/shared/ui/button";
 import { EntityIcon, ENTITY_TYPE_LABELS } from "@/shared/components/entity-icon";
 import { buildEntryLink } from "@/shared/lib/entry-links";
-import { useUnstarEntity } from "@/features/star-item";
-import type { StarredEntry } from "@shared/types";
+import type { SharedWithMeEntry } from "@shared/types";
 
-export function StarredRow({ entry }: { entry: StarredEntry }) {
-  const { mutate, isPending } = useUnstarEntity();
-
-  function handleUnstar() {
-    mutate(
-      { entityType: entry.entityType, entityId: entry.entityId },
-      { onError: () => toast.error("Couldn't update starred status.") },
-    );
-  }
-
+export function SharedWithMeRow({ entry }: { entry: SharedWithMeEntry }) {
   return (
     <TableRow>
       <TableCell>
@@ -33,10 +20,8 @@ export function StarredRow({ entry }: { entry: StarredEntry }) {
       <TableCell className="text-muted-foreground">
         {entry.entityType === "dataroom" ? "—" : entry.dataroomName}
       </TableCell>
-      <TableCell className="text-right">
-        <Button variant="ghost" size="icon" className="size-8" onClick={handleUnstar} disabled={isPending}>
-          <Star className="size-4 fill-yellow-400 text-yellow-400" />
-        </Button>
+      <TableCell className="text-muted-foreground">
+        <span className="truncate">{entry.ownerName}</span>
       </TableCell>
     </TableRow>
   );

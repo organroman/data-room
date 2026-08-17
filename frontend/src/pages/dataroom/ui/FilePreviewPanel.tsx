@@ -3,13 +3,15 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
-import { ChevronLeft, ChevronRight, Download, Minus, Pencil, Plus, Star, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Minus, Plus, X } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { ErrorMessage } from "@/shared/components/error-message";
 import { ActionsMenu } from "@/shared/components/actions-menu";
 import { InlineRenameField } from "@/shared/components/inline-rename-field";
-import { useFile, DeleteFileDialog } from "@/features/file-actions";
+import { useFile, DeleteFileDialog, MoveFileDialog } from "@/features/file-actions";
+import { ShareDialog } from "@/features/share-actions";
+import { useBrowseMode } from "@/shared/lib/browse-context";
 import { useEntryActions } from "../model/useEntryActions";
 import type { FileEntry } from "@shared/types";
 
@@ -23,8 +25,8 @@ const MAX_SCALE = 2.5;
 const SCALE_STEP = 0.25;
 
 export function FilePreviewPanel() {
-  const { fileId } = useParams<{ fileId: string }>();
-  const { data: file, isLoading, isError } = useFile(fileId!);
+  const { fileId, token } = useParams<{ fileId: string; token?: string }>();
+  const { data: file, isLoading, isError } = useFile(fileId!, token);
 
   if (isLoading) {
     return (
@@ -45,14 +47,17 @@ export function FilePreviewPanel() {
 function FilePreviewContent({ file }: { file: FileEntry }) {
   const { dataroomId } = useParams<{ dataroomId: string }>();
   const navigate = useNavigate();
+  const { buildPath } = useBrowseMode();
   const {
     icon: Icon,
     rename,
     del,
+    move,
+    share,
     renameError,
     renamePending,
     handleRenameSubmit,
-    toggleStar,
+    menuItems,
   } = useEntryActions(file, dataroomId!);
 
   const [numPages, setNumPages] = useState<number>();
@@ -60,9 +65,7 @@ function FilePreviewContent({ file }: { file: FileEntry }) {
   const [scale, setScale] = useState(1);
   const [loadError, setLoadError] = useState(false);
 
-  const backTo = file.folderId
-    ? `/datarooms/${dataroomId}/folders/${file.folderId}`
-    : `/datarooms/${dataroomId}`;
+  const backTo = buildPath({ dataroomId: dataroomId!, folderId: file.folderId });
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden rounded-xl border">
@@ -88,13 +91,7 @@ function FilePreviewContent({ file }: { file: FileEntry }) {
               <Download className="size-4" />
             </a>
           </Button>
-          <ActionsMenu
-            items={[
-              { label: file.starred ? "Unstar" : "Star", icon: Star, onSelect: toggleStar },
-              { label: "Rename", icon: Pencil, onSelect: rename.openDialog },
-              { label: "Delete", icon: Trash2, onSelect: del.openDialog, variant: "destructive" },
-            ]}
-          />
+          {menuItems.length > 0 && <ActionsMenu items={menuItems} />}
           <Button
             variant="ghost"
             size="icon"
@@ -184,6 +181,21 @@ function FilePreviewContent({ file }: { file: FileEntry }) {
         fileId={file.id}
         fileName={file.name}
         onDeleted={() => navigate(backTo)}
+      />
+      <MoveFileDialog
+        open={move.dialogOpen}
+        onOpenChange={move.setDialogOpen}
+        dataroomId={dataroomId!}
+        fileId={file.id}
+        fileName={file.name}
+        currentFolderId={file.folderId}
+      />
+      <ShareDialog
+        open={share.dialogOpen}
+        onOpenChange={share.setDialogOpen}
+        resourceType="file"
+        resourceId={file.id}
+        resourceName={file.name}
       />
     </div>
   );

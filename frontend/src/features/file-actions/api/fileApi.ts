@@ -30,6 +30,7 @@ export function restoreFile(fileId: string) {
   return api.post<void>(`/files/${fileId}/restore`);
 }
 
-export function getFile(fileId: string) {
-  return api.get<FileEntry>(`/files/${fileId}`);
+export function getFile(fileId: string, token?: string) {
+  const qs = toQueryString({ token });
+  return api.get<FileEntry>(`/files/${fileId}${qs}`);
 }

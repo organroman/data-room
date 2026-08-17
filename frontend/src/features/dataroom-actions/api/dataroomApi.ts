@@ -21,7 +21,7 @@ export function restoreDataroom(dataroomId: string) {
   return api.post<void>(`/datarooms/${dataroomId}/restore`);
 }
 
-export function getDataroomContents(dataroomId: string, folderId?: string, search?: string) {
-  const qs = toQueryString({ folderId, search });
+export function getDataroomContents(dataroomId: string, folderId?: string, search?: string, token?: string) {
+  const qs = toQueryString({ folderId, search, token });
   return api.get<FolderContents>(`/datarooms/${dataroomId}/contents${qs}`);
 }

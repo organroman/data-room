@@ -8,6 +8,7 @@ import {
   BreadcrumbSeparator,
 } from "@/shared/ui/breadcrumb";
 import { FolderOpenIcon } from "lucide-react";
+import { useBrowseMode } from "@/shared/lib/browse-context";
 
 interface BreadcrumbsProps {
   dataroomId: string;
@@ -20,6 +21,7 @@ export function Breadcrumbs({
   dataroomName,
   folders,
 }: BreadcrumbsProps) {
+  const { buildPath } = useBrowseMode();
   const isAtRoot = folders.length === 0;
 
   return (
@@ -34,7 +36,7 @@ export function Breadcrumbs({
           ) : (
             <BreadcrumbLink asChild>
               <Link
-                to={`/datarooms/${dataroomId}`}
+                to={buildPath({ dataroomId })}
                 className="inline-flex items-center gap-1.5"
               >
                 <FolderOpenIcon className="w-5 h-5" />
@@ -56,7 +58,7 @@ export function Breadcrumbs({
                 ) : (
                   <BreadcrumbLink asChild>
                     <Link
-                      to={`/datarooms/${dataroomId}/folders/${folder.id}`}
+                      to={buildPath({ dataroomId, folderId: folder.id })}
                       className="max-w-[16rem] truncate"
                     >
                       {folder.name}

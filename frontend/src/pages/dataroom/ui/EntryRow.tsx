@@ -60,7 +60,7 @@ export function EntryRow({ entry, dataroomId }: EntryRowProps) {
         {entry.type === "folder" ? "–" : formatBytes(entry.size)}
       </TableCell>
       <TableCell className="text-right">
-        <ActionsMenu items={menuItems} />
+        {menuItems.length > 0 && <ActionsMenu items={menuItems} />}
       </TableCell>
       {entry.type === "folder" ? (
         <DeleteFolderDialog

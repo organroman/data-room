@@ -1,4 +1,4 @@
-import { FolderClosed, LogOut, Star, Trash2 } from "lucide-react";
+import { FolderClosed, LogOut, Star, Trash2, Users } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { authClient } from "@/shared/api/auth-client";
 import {
@@ -24,6 +24,7 @@ import {
 
 const navItems = [
   { to: "/datarooms", label: "Data Rooms", icon: FolderClosed },
+  { to: "/shared-with-me", label: "Shared with me", icon: Users },
   { to: "/starred", label: "Starred", icon: Star },
   { to: "/trash", label: "Trash", icon: Trash2 },
 ];

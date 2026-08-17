@@ -3,6 +3,7 @@ import { Folder, FileText, Star, Pencil, FolderInput, Share2, Trash2 } from "luc
 import { toast } from "sonner";
 import { ApiClientError } from "@/shared/api/client";
 import { useDialog } from "@/shared/hooks/use-dialog";
+import { useBrowseMode } from "@/shared/lib/browse-context";
 import type { ActionsMenuItem } from "@/shared/components/actions-menu";
 import { useRenameFolder } from "@/features/folder-actions";
 import { useRenameFile } from "@/features/file-actions";
@@ -10,6 +11,7 @@ import { useStarEntity, useUnstarEntity } from "@/features/star-item";
 import type { BrowserEntry } from "@shared/types";
 
 export function useEntryActions(entry: BrowserEntry, dataroomId: string) {
+  const { isReadOnly, buildPath } = useBrowseMode();
   const rename = useDialog();
   const del = useDialog();
   const move = useDialog();
@@ -51,19 +53,23 @@ export function useEntryActions(entry: BrowserEntry, dataroomId: string) {
   }
 
   const to = isFolder
-    ? `/datarooms/${dataroomId}/folders/${entry.id}`
-    : entry.folderId
-      ? `/datarooms/${dataroomId}/folders/${entry.folderId}/files/${entry.id}`
-      : `/datarooms/${dataroomId}/files/${entry.id}`;
+    ? buildPath({ dataroomId, folderId: entry.id })
+    : buildPath({ dataroomId, folderId: entry.folderId, fileId: entry.id });
 
   // Shared between EntryRow (table) and EntryCard (grid) — both views offer the same actions.
-  const menuItems: ActionsMenuItem[] = [
-    { label: entry.starred ? "Unstar" : "Star", icon: Star, onSelect: toggleStar },
-    { label: "Rename", icon: Pencil, onSelect: rename.openDialog },
-    { label: "Share", icon: Share2, onSelect: share.openDialog },
-    ...(isFolder ? [] : [{ label: "Move to…", icon: FolderInput, onSelect: move.openDialog }]),
-    { label: "Delete", icon: Trash2, onSelect: del.openDialog, variant: "destructive" as const },
-  ];
+  // Empty in read-only mode (a shared view the viewer doesn't own) — the backend already
+  // rejects these mutations for a non-owner regardless, but showing buttons that would just
+  // 404 is bad UX. Starring is excluded too: it's currently owner-only server-side (Phase 2),
+  // not a per-viewer personal annotation, so it isn't safe to offer to a grantee yet.
+  const menuItems: ActionsMenuItem[] = isReadOnly
+    ? []
+    : [
+        { label: entry.starred ? "Unstar" : "Star", icon: Star, onSelect: toggleStar },
+        { label: "Rename", icon: Pencil, onSelect: rename.openDialog },
+        { label: "Share", icon: Share2, onSelect: share.openDialog },
+        ...(isFolder ? [] : [{ label: "Move to…", icon: FolderInput, onSelect: move.openDialog }]),
+        { label: "Delete", icon: Trash2, onSelect: del.openDialog, variant: "destructive" as const },
+      ];
 
   return {
     isFolder,
@@ -73,6 +79,7 @@ export function useEntryActions(entry: BrowserEntry, dataroomId: string) {
     del,
     move,
     share,
+    isReadOnly,
     renameError,
     renamePending,
     handleRenameSubmit,

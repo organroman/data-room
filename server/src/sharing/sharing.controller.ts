@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Post, Query } from "@nestjs/common";
-import { Session, type UserSession } from "@thallesp/nestjs-better-auth";
+import { Throttle } from "@nestjs/throttler";
+import { AllowAnonymous, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { SharesService } from "./shares.service.js";
 import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe.js";
 import { createShareSchema, sharesQuerySchema } from "../../../shared/validation.js";
@@ -15,6 +16,15 @@ export class SharingController {
     @Body(new ZodValidationPipe(createShareSchema, "Invalid request body")) body: CreateShareInput,
   ) {
     return this.sharesService.createShare(session.user.id, body);
+  }
+
+  @Get("token/:token/resolve")
+  @AllowAnonymous()
+  // Stricter than the app-wide default (CLAUDE.md §6b) — this is the public share-token read
+  // path, the one endpoint on this controller reachable without a session at all.
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  resolveToken(@Param("token") token: string) {
+    return this.sharesService.resolveToken(token);
   }
 
   @Get("shared-with-me")

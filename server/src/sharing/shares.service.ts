@@ -3,7 +3,13 @@ import { Injectable } from "@nestjs/common";
 import type { Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service.js";
 import { ApiException } from "../common/exceptions/api.exception.js";
-import type { CreateShareInput, EntityType, SharedWithMeEntry, ShareSummary } from "../../../shared/types.js";
+import type {
+  CreateShareInput,
+  EntityType,
+  ResolvedShare,
+  SharedWithMeEntry,
+  ShareSummary,
+} from "../../../shared/types.js";
 
 type ShareWithGrantees = Prisma.ShareGetPayload<{ include: { grants: { include: { granteeUser: true } } } }>;
 
@@ -15,6 +21,54 @@ type ResourceFk = { dataroomId: string } | { folderId: string } | { fileId: stri
 @Injectable()
 export class SharesService {
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Resolves an anonymous public-link token to where the frontend should actually navigate —
+   * the `/shared/:token` route knows only the token, not the underlying dataroomId, so this is
+   * called once up front. The subsequent content fetches (getDataroomContents/getFileById,
+   * both already token-aware since Phase 3) are where the *real* access check and the
+   * AccessLog write happen — this method only checks the share itself is a live, unexpired,
+   * unrevoked public link, mirroring SharesAccessService's public-token branch without a
+   * circular dependency on it.
+   */
+  async resolveToken(token: string): Promise<ResolvedShare> {
+    const share = await this.prisma.share.findFirst({
+      where: {
+        mode: "public",
+        token,
+        revokedAt: null,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+      include: { owner: true },
+    });
+    if (!share) throw ApiException.notFound("Share link");
+    const owner = { ownerName: share.owner.name, ownerEmail: share.owner.email };
+
+    if (share.resourceType === "dataroom") {
+      const dataroom = await this.prisma.dataroom.findFirst({
+        where: { id: share.dataroomId!, deletedAt: null },
+        select: { id: true, name: true },
+      });
+      if (!dataroom) throw ApiException.notFound("Share link");
+      return { resourceType: "dataroom", dataroomId: dataroom.id, folderId: null, fileId: null, resourceName: dataroom.name, ...owner };
+    }
+
+    if (share.resourceType === "folder") {
+      const folder = await this.prisma.folder.findFirst({
+        where: { id: share.folderId!, deletedAt: null },
+        select: { id: true, dataroomId: true, name: true },
+      });
+      if (!folder) throw ApiException.notFound("Share link");
+      return { resourceType: "folder", dataroomId: folder.dataroomId, folderId: folder.id, fileId: null, resourceName: folder.name, ...owner };
+    }
+
+    const file = await this.prisma.file.findFirst({
+      where: { id: share.fileId!, deletedAt: null },
+      select: { id: true, dataroomId: true, folderId: true, name: true },
+    });
+    if (!file) throw ApiException.notFound("Share link");
+    return { resourceType: "file", dataroomId: file.dataroomId, folderId: file.folderId, fileId: file.id, resourceName: file.name, ...owner };
+  }
 
   async createShare(userId: string, input: CreateShareInput): Promise<ShareSummary> {
     await this.assertOwnsResource(userId, input.resourceType, input.resourceId);

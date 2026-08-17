@@ -3,6 +3,7 @@ import { Button } from "@/shared/ui/button";
 import { SearchInput } from "@/shared/components/search-input";
 import { UploadButton } from "@/features/upload-file";
 import { cn } from "@/shared/lib/utils";
+import { useBrowseMode } from "@/shared/lib/browse-context";
 import type { ViewMode } from "./types";
 
 interface ToolbarProps {
@@ -22,14 +23,23 @@ export function Toolbar({
   onNewFolder,
   onUploadFiles,
 }: ToolbarProps) {
+  const { isReadOnly } = useBrowseMode();
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <SearchInput
-        containerClassName="max-w-sm flex-1"
-        value={search}
-        onChange={(e) => onSearchChange(e.target.value)}
-        placeholder="Search in this data room…"
-      />
+      {/* Search is owner-only server-side (a shared-folder scope can't safely expose a
+          dataroom-wide search without leaking sibling content — see CLAUDE.md §Phase 3),
+          so it's hidden here rather than shown as a control that would silently no-op. */}
+      {isReadOnly ? (
+        <div />
+      ) : (
+        <SearchInput
+          containerClassName="max-w-sm flex-1"
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="Search in this data room…"
+        />
+      )}
       <div className="flex items-center gap-2">
         <div className="flex items-center rounded-md border p-0.5">
           <Button
@@ -53,10 +63,14 @@ export function Toolbar({
             <LayoutGrid className="size-4" />
           </Button>
         </div>
-        <Button variant="outline" onClick={onNewFolder}>
-          <FolderPlus /> New Folder
-        </Button>
-        <UploadButton onSelectFiles={onUploadFiles} />
+        {!isReadOnly && (
+          <>
+            <Button variant="outline" onClick={onNewFolder}>
+              <FolderPlus /> New Folder
+            </Button>
+            <UploadButton onSelectFiles={onUploadFiles} />
+          </>
+        )}
       </div>
     </div>
   );

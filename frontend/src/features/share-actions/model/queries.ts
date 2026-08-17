@@ -18,3 +18,13 @@ export function useSharedWithMe() {
     queryFn: api.listSharedWithMe,
   });
 }
+
+/** Resolves a public-link token to what it points to — used once by the /shared/:token resolver. */
+export function useResolveShareToken(token: string) {
+  return useQuery({
+    queryKey: ["shares", "token", token, "resolve"],
+    queryFn: () => api.resolveShareToken(token),
+    enabled: Boolean(token),
+    retry: false,
+  });
+}

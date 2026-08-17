@@ -40,7 +40,7 @@ export function EntryCard({ entry, dataroomId }: EntryCardProps) {
             <Icon className={cn("size-8 shrink-0", isFolder ? "text-muted-foreground" : "text-red-500")} />
             <div className="relative z-10 flex items-center gap-0.5">
               {entry.starred && <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />}
-              <ActionsMenu items={menuItems} />
+              {menuItems.length > 0 && <ActionsMenu items={menuItems} />}
             </div>
           </div>
           {rename.dialogOpen ? (

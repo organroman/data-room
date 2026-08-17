@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import * as api from "../api/fileApi";
 
-export function useFile(fileId: string) {
+export function useFile(fileId: string, token?: string) {
   return useQuery({
-    queryKey: ["datarooms", "files", fileId],
-    queryFn: () => api.getFile(fileId),
+    queryKey: ["datarooms", "files", fileId, token ?? ""],
+    queryFn: () => api.getFile(fileId, token),
     enabled: Boolean(fileId),
   });
 }
