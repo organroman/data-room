@@ -40,7 +40,12 @@ export function SignupPage() {
 
   async function onGoogleSignUp() {
     setIsGoogleSubmitting(true);
-    const { error } = await authClient.signIn.social({ provider: "google", callbackURL: "/datarooms" });
+    // Must be absolute — see LoginPage.tsx's onGoogleSignIn for why a relative callbackURL
+    // resolves against the backend origin instead of the frontend.
+    const { error } = await authClient.signIn.social({
+      provider: "google",
+      callbackURL: `${window.location.origin}/datarooms`,
+    });
     if (error) {
       toast.error(error.message ?? "Couldn't sign up with Google.");
       setIsGoogleSubmitting(false);

@@ -34,7 +34,13 @@ export function LoginPage() {
 
   async function onGoogleSignIn() {
     setIsGoogleSubmitting(true);
-    const { error } = await authClient.signIn.social({ provider: "google", callbackURL: "/datarooms" });
+    // Must be absolute: authClient's own baseURL is the backend origin (see auth-client.ts), so
+    // a relative callbackURL resolves against the backend, not the frontend — landing the
+    // post-login redirect on the API server instead of the app in any cross-origin deployment.
+    const { error } = await authClient.signIn.social({
+      provider: "google",
+      callbackURL: `${window.location.origin}/datarooms`,
+    });
     if (error) {
       toast.error(error.message ?? "Couldn't sign in with Google.");
       setIsGoogleSubmitting(false);

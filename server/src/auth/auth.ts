@@ -34,6 +34,19 @@ export const auth = betterAuth({
     // task2.md doesn't require them, and the time budget goes to auth+sharing+move instead.
     requireEmailVerification: false,
   },
+  // Without this, signing in with Google using an email that already has an email/password
+  // account here throws account_not_linked instead of linking the two — Better Auth's default
+  // auto-link path normally requires the existing account's email to already be verified, but
+  // this app never verifies email/password signups at all (see requireEmailVerification above),
+  // so every existing account would otherwise permanently fail Google sign-in. Trusting google
+  // specifically is reasonable here (unlike the general case) since Google itself verifies the
+  // email before ever handing it back to us.
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
+    },
+  },
   // Registered only when a Google Cloud OAuth client is configured, so local dev works without
   // one — see the "Open items" section in CLAUDE.md and .env.example.
   ...(googleClientId && googleClientSecret
