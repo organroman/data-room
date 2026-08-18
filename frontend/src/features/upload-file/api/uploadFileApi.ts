@@ -8,6 +8,13 @@ export async function uploadFile(
   file: File,
   onProgress?: (percentage: number) => void,
 ): Promise<{ file: FileEntry; renamed: boolean }> {
+  // Trimmed once and reused for every step below (token generation, the PUT itself, and the
+  // confirm call) — the backend's generateUploadTokenSchema/nameSchema both trim server-side,
+  // so a raw file.name with leading/trailing whitespace would make the token's embedded
+  // pathname (trimmed) disagree with the PUT's actual pathname (untrimmed), which Vercel Blob
+  // storage rejects outright as "pathname does not match the token payload".
+  const pathname = file.name.trim();
+
   // Two steps, not @vercel/blob/client's all-in-one upload() convenience helper: upload()
   // fetches the token itself via its own internal request, which has no way to set
   // credentials: "include" — fine same-origin, but breaks cross-origin in production (frontend
@@ -16,10 +23,10 @@ export async function uploadFile(
   // set credentials: "include") keeps the browser->backend leg authenticated; the browser->blob
   // storage PUT that follows doesn't touch our backend at all, so it was never the problem.
   const { token } = await api.post<GenerateUploadTokenResult>("/files/upload-url", {
-    pathname: file.name,
+    pathname,
   });
 
-  const blob = await put(file.name, file, {
+  const blob = await put(pathname, file, {
     access: "public",
     token,
     onUploadProgress: ({ percentage }) => onProgress?.(percentage),
@@ -28,7 +35,7 @@ export async function uploadFile(
   return api.post<{ file: FileEntry; renamed: boolean }>("/files/confirm", {
     dataroomId,
     folderId,
-    name: file.name,
+    name: pathname,
     size: file.size,
     blobUrl: blob.url,
     blobPathname: blob.pathname,
