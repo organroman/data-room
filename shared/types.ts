@@ -169,6 +169,14 @@ export interface ConfirmUploadInput {
   blobPathname: string;
 }
 
+export interface GenerateUploadTokenInput {
+  pathname: string;
+}
+
+export interface GenerateUploadTokenResult {
+  token: string;
+}
+
 export interface StarEntityInput {
   entityType: EntityType;
   entityId: string;

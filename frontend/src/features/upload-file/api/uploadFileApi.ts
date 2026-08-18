@@ -1,6 +1,6 @@
-import { upload } from "@vercel/blob/client";
-import { api, API_BASE } from "@/shared/api/client";
-import type { FileEntry } from "@shared/types";
+import { put } from "@vercel/blob/client";
+import { api } from "@/shared/api/client";
+import type { FileEntry, GenerateUploadTokenResult } from "@shared/types";
 
 export async function uploadFile(
   dataroomId: string,
@@ -8,13 +8,20 @@ export async function uploadFile(
   file: File,
   onProgress?: (percentage: number) => void,
 ): Promise<{ file: FileEntry; renamed: boolean }> {
-  const blob = await upload(file.name, file, {
+  // Two steps, not @vercel/blob/client's all-in-one upload() convenience helper: upload()
+  // fetches the token itself via its own internal request, which has no way to set
+  // credentials: "include" — fine same-origin, but breaks cross-origin in production (frontend
+  // on Vercel, backend on Render) since the session cookie never gets attached, and the
+  // backend's AuthGuard 401s. Fetching the token through our own `api` client first (which does
+  // set credentials: "include") keeps the browser->backend leg authenticated; the browser->blob
+  // storage PUT that follows doesn't touch our backend at all, so it was never the problem.
+  const { token } = await api.post<GenerateUploadTokenResult>("/files/upload-url", {
+    pathname: file.name,
+  });
+
+  const blob = await put(file.name, file, {
     access: "public",
-    // Relative "/api/..." resolves against the *page's* origin, not the backend's — harmless
-    // locally (Vite proxies /api to the Nest backend, same-origin), but in production the
-    // frontend (Vercel) and backend (Render) are genuinely different origins, so this needs
-    // the same API_BASE prefix shared/api/client.ts's own request() uses.
-    handleUploadUrl: `${API_BASE}/api/files/upload-url`,
+    token,
     onUploadProgress: ({ percentage }) => onProgress?.(percentage),
   });
 

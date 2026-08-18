@@ -3,6 +3,7 @@ import type {
   CreateFolderInput,
   ContentsQuery,
   ConfirmUploadInput,
+  GenerateUploadTokenInput,
   StarEntityInput,
   TrashQuery,
   CreateShareInput,
@@ -45,6 +46,10 @@ export const bulkMoveSchema = z.object({
   ids: z.array(uuidSchema).min(1).max(MAX_BULK_ITEMS),
   folderId: uuidSchema.nullable(),
 }) satisfies z.ZodType<BulkMoveInput>;
+
+export const generateUploadTokenSchema = z.object({
+  pathname: z.string().trim().min(1).max(255),
+}) satisfies z.ZodType<GenerateUploadTokenInput>;
 
 export const confirmUploadSchema = nameSchema.extend({
   dataroomId: uuidSchema,

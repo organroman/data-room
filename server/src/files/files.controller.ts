@@ -1,18 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Patch,
-  Post,
-  Query,
-  Req,
-} from "@nestjs/common";
-import type { Request } from "express";
-import type { HandleUploadBody } from "@vercel/blob/client";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query } from "@nestjs/common";
 import { OptionalAuth, Session, type UserSession } from "@thallesp/nestjs-better-auth";
 import { FilesService } from "./files.service.js";
 import { BlobService } from "../blob/blob.service.js";
@@ -20,11 +6,18 @@ import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe.js";
 import {
   nameSchema,
   confirmUploadSchema,
+  generateUploadTokenSchema,
   moveFileSchema,
   bulkIdsSchema,
   bulkMoveSchema,
 } from "../../../shared/validation.js";
-import type { BulkIdsInput, BulkMoveInput, ConfirmUploadInput, MoveFileInput } from "../../../shared/types.js";
+import type {
+  BulkIdsInput,
+  BulkMoveInput,
+  ConfirmUploadInput,
+  GenerateUploadTokenInput,
+  MoveFileInput,
+} from "../../../shared/types.js";
 
 @Controller("files")
 export class FilesController {
@@ -35,10 +28,12 @@ export class FilesController {
 
   @Post("upload-url")
   @HttpCode(HttpStatus.OK)
-  // Body shape here is dictated by @vercel/blob's client `upload()` helper, not our own
-  // schema, so it isn't zod-validated like the rest of the API's request bodies.
-  getUploadUrl(@Body() body: HandleUploadBody, @Req() req: Request) {
-    return this.blobService.generateUploadToken(body, req);
+  async getUploadUrl(
+    @Body(new ZodValidationPipe(generateUploadTokenSchema, "Invalid request body"))
+    body: GenerateUploadTokenInput,
+  ) {
+    const token = await this.blobService.generateUploadToken(body.pathname);
+    return { token };
   }
 
   @Post("confirm")
