@@ -49,11 +49,21 @@ export function DataroomPage() {
   const isPreviewingFile = Boolean(rootFileMatch || nestedFileMatch || sharedRootFileMatch || sharedNestedFileMatch);
 
   const debouncedSearch = useDebouncedValue(search, 300);
+  // Skipped specifically for a token-based file preview (an anonymous visitor on a file-level
+  // public link): FilePreviewPanel fetches the file itself independently (useFile, also
+  // token-aware) and doesn't use this folder-contents data or its breadcrumbs at all, and for a
+  // file-level share this call is guaranteed to 404 (the token only grants access to that one
+  // file, not its parent folder's listing, by design — see shares-access.service.ts) — pure
+  // waste, a failed request against the public endpoint's rate limit for zero UI benefit.
+  // NOT skipped for the authenticated (no-token) case even while previewing a file: this fetch
+  // is still the only source of `isOwner`/isReadOnly there, which FilePreviewPanel's own
+  // mutating menu (rename/delete/move/share) depends on via BrowseContext.
   const { data, isLoading, isError } = useDataroomContents(
     dataroomId!,
     folderId,
     debouncedSearch || undefined,
     token,
+    !(isPreviewingFile && token),
   );
 
   // Defaults to read-only (fails closed) until the fetch resolves and we actually know —
