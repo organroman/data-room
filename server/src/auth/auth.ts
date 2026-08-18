@@ -55,6 +55,17 @@ export const auth = betterAuth({
           google: {
             clientId: googleClientId,
             clientSecret: googleClientSecret,
+            // Points Google's redirect at the FRONTEND origin (proxied to this backend via
+            // vercel.json's /api/* rewrite, same as every other request — see CLAUDE.md), not
+            // this server's own baseURL (Render). Two real problems if it redirected straight to
+            // Render instead: (1) Chrome's Safe Browsing flags onrender.com's shared domain as
+            // dangerous for some users, blocking the redirect outright; (2) the OAuth state
+            // cookie gets set during sign-in initiation (which already goes through the frontend
+            // origin, since authClient's baseURL is unset — see shared/api/auth-client.ts) but
+            // would then need to be read back on a completely different origin (Render) during
+            // the callback, which Safari's ITP won't allow — surfaces as "state_mismatch". Both
+            // disappear once initiation and callback happen on the same origin throughout.
+            redirectURI: `${frontendOrigin}/api/auth/callback/google`,
           },
         },
       }
