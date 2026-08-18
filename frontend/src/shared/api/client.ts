@@ -2,7 +2,9 @@ import type { ApiErrorBody } from "@shared/types";
 
 // Empty locally (relative path, proxied by Vite — see vite.config.ts); the deployed
 // backend's origin in production, since frontend and backend are genuinely cross-origin there.
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+// Exported so callers that build a backend URL outside this module's own request() — currently
+// only @vercel/blob/client's upload() and its handleUploadUrl option — stay in sync with it.
+export const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
 export class ApiClientError extends Error {
   status: number;
